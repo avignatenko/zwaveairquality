@@ -30,3 +30,12 @@
 *.exe
 *.out
 *.app
+
+# VSCode
+.vscode
+
+# Z-Uno
+/cache
+/Z-Uno2
+/package_z-wave2.me_index.json
+/setting.json
