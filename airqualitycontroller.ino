@@ -2,6 +2,7 @@
 #include "EEPROM.h"
 
 #include "temphum.h"
+#include "tvoc.h"
 #include "common.h"
 
 #include "HardwareSerial.h"
@@ -10,12 +11,9 @@
 EasyNex s_display(Serial1); // Create an object of EasyNex class with the name < myNex >
                             // Set as parameter the Hardware Serial you are going to use
 
-s_pin TVOC_A_PIN = 9;
-
 byte s_displayBrightness = 100;
 word s_co2 = 400; // ppm
-byte s_tvoc_level = 0;
-word s_pm25 = 5; // ppm
+word s_pm25 = 5;  // ppm
 
 #define ZUNO_SENSOR_MULTILEVEL_TEMPERATURE_2(GETTER) ZUNO_SENSOR_MULTILEVEL(ZUNO_SENSOR_MULTILEVEL_TYPE_TEMPERATURE, SENSOR_MULTILEVEL_SCALE_CELSIUS, SENSOR_MULTILEVEL_SIZE_TWO_BYTES, SENSOR_MULTILEVEL_PRECISION_ONE_DECIMAL, GETTER)
 #define ZUNO_SENSOR_MULTILEVEL_HUMIDITY_2(GETTER) ZUNO_SENSOR_MULTILEVEL(ZUNO_SENSOR_MULTILEVEL_TYPE_RELATIVE_HUMIDITY, SENSOR_MULTILEVEL_SCALE_PERCENTAGE_VALUE, SENSOR_MULTILEVEL_SIZE_TWO_BYTES, SENSOR_MULTILEVEL_PRECISION_ONE_DECIMAL, GETTER)
@@ -32,7 +30,7 @@ ZUNO_SETUP_CHANNELS(
     ZUNO_SENSOR_MULTILEVEL_TEMPERATURE_2(getTemperature),
     ZUNO_SENSOR_MULTILEVEL_HUMIDITY_2(getHumidity),
     ZUNO_SENSOR_MULTILEVEL_CO2_LEVEL_2(s_co2),
-    ZUNO_SENSOR_MULTILEVEL_VOLATILE_ORGANIC_COMPOUND(s_tvoc_level),
+    ZUNO_SENSOR_MULTILEVEL_VOLATILE_ORGANIC_COMPOUND(getTVOC),
     ZUNO_SENSOR_MULTILEVEL_PM2_5_LEVEL(s_pm25));
 
 ZUNO_SETUP_CONFIGPARAMETERS(
@@ -43,11 +41,6 @@ ZUNO_SETUP_CONFIGPARAMETERS(
     ZUNO_CONFIG_PARAMETER_1B("Humidity correction (% * 10 + 100)", 0, 200, 100));
 
 ZUNO_SETUP_CFGPARAMETER_HANDLER(configParameterChanged2);
-
-word s_tvocLastReported = 0;
-word s_temp_tvoc_interval = 60 * 20; // 20 mins default, min 30 seconds
-word s_tvoc_threshold = 0;
-unsigned long s_lastReportedTimeTVOC = 0;
 
 void updateFromCFGParams()
 {
@@ -69,27 +62,6 @@ void setDisplayBrightness(BYTE newValue)
 {
   s_displayBrightness = newValue;
   s_display.writeNum("dim", s_displayBrightness);
-}
-
-void setupTVOC()
-{
-  pinMode(TVOC_A_PIN, INPUT);
-}
-
-void updateTVOC(bool firstTime = false)
-{
-  // wait for the next HIGH pulse
-  DWORD duration = pulseIn(TVOC_A_PIN, HIGH, 200000); // wait for 200 ms
-  if (duration == 0)                                  // no changes, just read the pin
-  {
-    byte level = digitalRead(TVOC_A_PIN);
-    s_tvoc_level = (level > 0 ? 10 : 0);
-    return;
-  }
-
-  s_tvoc_level = (duration / 1000 + 10) / 10;
-  if (s_tvoc_level > 10)
-    s_tvoc_level = 10;
 }
 
 void setupDisplay()
@@ -153,27 +125,26 @@ int tvocToSeverity(int tvoc)
 void updateTemperatureDisplay()
 {
   s_display.writeStr("vis temp_disp,1");
-  s_display.writeNum("temp_disp.val", s_temperature);
-  s_display.writeNum("temp_disp.bco", colorFromSeverity(temperatureToSeverity(s_temperature / 10)));
+  s_display.writeNum("temp_disp.val", getTemperature());
+  s_display.writeNum("temp_disp.bco", colorFromSeverity(temperatureToSeverity(getTemperature() / 10)));
 }
 
 void updateHumidityDisplay()
 {
   s_display.writeStr("vis hum_disp,1");
-  s_display.writeNum("hum_disp.val", s_humidity);
-  s_display.writeNum("hum_disp.bco", colorFromSeverity(humidityToSeverity(s_humidity / 10)));
+  s_display.writeNum("hum_disp.val", getHumidity());
+  s_display.writeNum("hum_disp.bco", colorFromSeverity(humidityToSeverity(getHumidity() / 10)));
 }
 
 void updateTVOCDisplay()
 {
   s_display.writeStr("vis co_disp,1");
-  s_display.writeNum("co_disp.val", s_tvoc_level);
-  s_display.writeNum("co_disp.bco", colorFromSeverity(tvocToSeverity(s_tvoc_level)));
+  s_display.writeNum("co_disp.val", getTVOC());
+  s_display.writeNum("co_disp.bco", colorFromSeverity(tvocToSeverity(getTVOC())));
 }
 
 void reportUpdates(bool firstTime = false)
 {
-
 #if SERIAL_LOGS
   Serial.println("reportUpdates called");
 #endif
@@ -188,27 +159,8 @@ void reportUpdates(bool firstTime = false)
   if (reportHumUpdates(firstTime))
     return;
 
-  unsigned long curMillis = millis();
-
-  bool reportTVOC = (abs(s_tvoc_level - s_tvocLastReported) > s_tvoc_threshold);
-  bool timePassedTVOC = (curMillis - s_lastReportedTimeTVOC > (unsigned long)s_temp_tvoc_interval * 1000);
-
-  if (firstTime || reportTVOC || timePassedTVOC)
-  {
-    zunoSendReport(CHANNEL_TVOC);
-    s_tvocLastReported = s_tvoc_level;
-    s_lastReportedTimeTVOC = curMillis;
-
-#if SERIAL_LOGS
-    Serial.print("TVOC update sent, because: ");
-    Serial.print(reportTVOC);
-    Serial.print(" ");
-    Serial.print(timePassedTVOC);
-    Serial.println();
-#endif
-
+  if (reportTVOCUpdates(firstTime))
     return;
-  }
 }
 
 void setup()
@@ -225,7 +177,7 @@ void setup()
   setupTVOC();
 
   updateDHT();
-  updateTVOC(true);    // first time\
+  updateTVOC(true);    // first time
 
   reportUpdates(true); // first time
 }

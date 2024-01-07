@@ -3,8 +3,6 @@
 
 #include "ZUNO_DHT.h"
 
-word s_humidity = 0;
-word s_temperature = 0;
 
 word getTemperature()
 {
@@ -16,23 +14,24 @@ word getHumidity()
     return s_humidity;
 }
 
-
 #define PIN_DHT 03
 
 // temp & humidity sensor (DHT22)
 DHT dht22_sensor(PIN_DHT, DHT22);
 
+word s_humidity = 0;
 word s_humidityLastReported = 0;
+unsigned long s_lastReportedTimeHumidity = 0;
+word s_hum_threshold = 5;
+word s_hum_correct = 0;
+
+word s_temperature = 0;
 word s_temperatureLastReported = 0;
 unsigned long s_lastReportedTimeTemperature = 0;
-unsigned long s_lastReportedTimeHumidity = 0;
+word s_temp_threshold = 2;
+word s_temp_correct = 0;
 
 word s_temp_hum_interval = 60 * 20; // 20 mins default, min 30 seconds
-word s_temp_threshold = 2;
-word s_hum_threshold = 5;
-
-word s_temp_correct = 0;
-word s_hum_correct = 0;
 
 void updateTempHumFromCFGParams()
 {
