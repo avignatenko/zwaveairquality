@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common.h"
+
 word getTemperature();
 word getHumidity();
 

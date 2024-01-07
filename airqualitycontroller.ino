@@ -3,11 +3,11 @@
 
 #include "temphum.h"
 #include "tvoc.h"
+#include "co2.h"
 #include "nextion.h"
 #include "common.h"
 
-word s_co2 = 400; // ppm
-word s_pm25 = 5;  // ppm
+word s_pm25 = 5; // ppm
 
 #define ZUNO_SENSOR_MULTILEVEL_TEMPERATURE_2(GETTER) ZUNO_SENSOR_MULTILEVEL(ZUNO_SENSOR_MULTILEVEL_TYPE_TEMPERATURE, SENSOR_MULTILEVEL_SCALE_CELSIUS, SENSOR_MULTILEVEL_SIZE_TWO_BYTES, SENSOR_MULTILEVEL_PRECISION_ONE_DECIMAL, GETTER)
 #define ZUNO_SENSOR_MULTILEVEL_HUMIDITY_2(GETTER) ZUNO_SENSOR_MULTILEVEL(ZUNO_SENSOR_MULTILEVEL_TYPE_RELATIVE_HUMIDITY, SENSOR_MULTILEVEL_SCALE_PERCENTAGE_VALUE, SENSOR_MULTILEVEL_SIZE_TWO_BYTES, SENSOR_MULTILEVEL_PRECISION_ONE_DECIMAL, GETTER)
@@ -19,12 +19,20 @@ ZUNO_ENABLE(
     MODERN_MULTICHANNEL // No clusters, the first channel is mapped to NIF only
 );
 
+// need to use this due to ZUNO preprocessor behaviour
+BYTE getDisplayBrightness1() { return getDisplayBrightness();}
+void setDisplayBrightness1(BYTE value) { return setDisplayBrightness(value);}
+BYTE getTemperature1() { return getTemperature();}
+word getHumidity1() { return getHumidity();}
+word getCO21() { return getCO2();}
+byte getTVOC1() { return getTVOC();}
+
 ZUNO_SETUP_CHANNELS(
-    ZUNO_SWITCH_MULTILEVEL(getDisplayBrightness, setDisplayBrightness),
-    ZUNO_SENSOR_MULTILEVEL_TEMPERATURE_2(getTemperature),
-    ZUNO_SENSOR_MULTILEVEL_HUMIDITY_2(getHumidity),
-    ZUNO_SENSOR_MULTILEVEL_CO2_LEVEL_2(s_co2),
-    ZUNO_SENSOR_MULTILEVEL_VOLATILE_ORGANIC_COMPOUND(getTVOC),
+    ZUNO_SWITCH_MULTILEVEL(getDisplayBrightness1, setDisplayBrightness1),
+    ZUNO_SENSOR_MULTILEVEL_TEMPERATURE_2(getTemperature1),
+    ZUNO_SENSOR_MULTILEVEL_HUMIDITY_2(getHumidity1),
+    ZUNO_SENSOR_MULTILEVEL_CO2_LEVEL_2(getCO21),
+    ZUNO_SENSOR_MULTILEVEL_VOLATILE_ORGANIC_COMPOUND(getTVOC1),
     ZUNO_SENSOR_MULTILEVEL_PM2_5_LEVEL(s_pm25));
 
 ZUNO_SETUP_CONFIGPARAMETERS(
@@ -63,6 +71,9 @@ void reportUpdates(bool firstTime = false)
 
   if (reportTVOCUpdates(firstTime))
     return;
+
+  if (reportCO2Updates(firstTime))
+    return;
 }
 
 void setup()
@@ -77,9 +88,11 @@ void setup()
   setupDisplay();
   setupDHT();
   setupTVOC();
+  setupCO2();
 
   updateDHT();
-  updateTVOC(true);    // first time
+  updateTVOC(true); // first time
+  updateCO2(true);
 
   reportUpdates(true); // first time
 }
@@ -89,6 +102,8 @@ void loop()
 
   updateDHT();
   updateTVOC();
+  updateCO2();
+
   reportUpdates();
 
   delay(2000);

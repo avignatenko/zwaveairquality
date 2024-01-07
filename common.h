@@ -1,6 +1,8 @@
 #pragma once
 
-#define SERIAL_LOGS 0
+#include "Arduino.h"
+
+#define SERIAL_LOGS 1
 
 enum
 {

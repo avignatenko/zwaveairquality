@@ -1,8 +1,10 @@
 #include "nextion.h"
-#include "common.h"
 
 #include "HardwareSerial.h"
 #include "EasyNextionLibrary.h" // Include EasyNextionLibrary
+
+#include "temphum.h"
+#include "tvoc.h"
 
 EasyNex s_display(Serial1); // Create an object of EasyNex class with the name < myNex >
                             // Set as parameter the Hardware Serial you are going to use

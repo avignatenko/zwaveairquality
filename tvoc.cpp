@@ -1,5 +1,4 @@
 #include "tvoc.h"
-#include "common.h"
 
 s_pin TVOC_A_PIN = 9;
 

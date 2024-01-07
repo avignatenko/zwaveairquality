@@ -1,18 +1,6 @@
 #include "temphum.h"
-#include "common.h"
 
 #include "ZUNO_DHT.h"
-
-
-word getTemperature()
-{
-    return s_temperature;
-}
-
-word getHumidity()
-{
-    return s_humidity;
-}
 
 #define PIN_DHT 03
 
@@ -32,6 +20,17 @@ word s_temp_threshold = 2;
 word s_temp_correct = 0;
 
 word s_temp_hum_interval = 60 * 20; // 20 mins default, min 30 seconds
+
+word getTemperature()
+{
+    return s_temperature;
+}
+
+word getHumidity()
+{
+    return s_humidity;
+}
+
 
 void updateTempHumFromCFGParams()
 {
