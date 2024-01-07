@@ -3,7 +3,14 @@
 
 #include "HardwareSerial.h"
 
-word s_co2 = 400; // ppm
+const byte co2_hd_pin = 6;
+
+word s_co2 = 0; // ppm
+
+word s_co2LastReported = 0;
+word s_co2_interval = 60 * 20; // 20 mins default, min 30 seconds
+word s_co2_threshold = 50;
+unsigned long s_lastReportedTimeCO2 = 0;
 
 HardwareSerial &s_co2_serial = Serial0;
 
@@ -15,6 +22,8 @@ word getCO2()
 void setupCO2()
 {
     s_co2_serial.begin(9600);
+    // set hd pin
+    pinMode(co2_hd_pin, HIGH);
 }
 
 char getCheckSum(uint8_t *packet)
@@ -90,4 +99,27 @@ void updateCO2(bool firstTime)
 
 bool reportCO2Updates(bool firstTime)
 {
+    unsigned long curMillis = millis();
+
+    bool reportCO2 = (abs(s_co2 - s_co2LastReported) > s_co2_threshold);
+    bool timePassedCO2 = (curMillis - s_lastReportedTimeCO2 > (unsigned long)s_co2_interval * 1000);
+
+    if (firstTime || reportCO2 || timePassedCO2)
+    {
+        zunoSendReport(CHANNEL_CO2);
+        s_co2LastReported = s_co2;
+        s_lastReportedTimeCO2 = curMillis;
+
+#if SERIAL_LOGS
+        Serial.print("CO2 update sent, because: ");
+        Serial.print(reportCO2);
+        Serial.print(" ");
+        Serial.print(timePassedCO2);
+        Serial.println();
+#endif
+
+        return true;
+    }
+
+    return false;
 }
