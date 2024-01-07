@@ -7,4 +7,4 @@ void setupCO2();
 void updateCO2(bool firstTime = false);
 bool reportCO2Updates(bool firstTime = false);
 
-void triggerCalibration();
+void triggerCO2Calibration();

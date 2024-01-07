@@ -27,7 +27,8 @@ void setupCO2()
 {
     s_co2_serial.begin(9600);
     // set hd pin
-    pinMode(co2_hd_pin, HIGH);
+    pinMode(co2_hd_pin, OUTPUT);
+    digitalWrite(co2_hd_pin, HIGH);
 }
 
 char getCheckSum(uint8_t *packet)
@@ -42,22 +43,26 @@ char getCheckSum(uint8_t *packet)
     return checksum;
 }
 
-void triggerCalibration()
+void triggerCO2Calibration()
 {
+
+#if SERIAL_LOGS
+    Serial.println("Trigger calibration entered");
+#endif
 
     if (s_inCalibration)
         return;
 
-#if SERIAL_LOGS
-    Serial.println("Trigger calibration");
-#endif
-
-    // set hd pin to LOW and start timer
-    pinMode(co2_hd_pin, LOW);
+    // set hd pin to LOW and start time
+    digitalWrite(co2_hd_pin, LOW);
 
     s_calibrationStartedTime = millis();
 
     s_inCalibration = true;
+
+#if SERIAL_LOGS
+    Serial.println("Calibration started");
+#endif
 }
 
 void updateCalibration()
@@ -74,8 +79,16 @@ void updateCalibration()
 
     if (delta > CALIBRATION_TIME)
     {
+#if SERIAL_LOGS
+        Serial.print("Calibration finished ");
+#endif
+        // set hd pin to HIGH and stop timer
+        digitalWrite(co2_hd_pin, HIGH);
         s_inCalibration = false;
         s_calibrationStartedTime = 0;
+
+        // fixme: move out of there to main code
+        zunoSaveCFGParam(CONFIG_CO2_START_CALIBRATION, 0);
     }
 }
 

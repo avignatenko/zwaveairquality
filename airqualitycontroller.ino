@@ -20,12 +20,12 @@ ZUNO_ENABLE(
 );
 
 // need to use this due to ZUNO preprocessor behaviour
-BYTE getDisplayBrightness1() { return getDisplayBrightness();}
-void setDisplayBrightness1(BYTE value) { return setDisplayBrightness(value);}
-BYTE getTemperature1() { return getTemperature();}
-word getHumidity1() { return getHumidity();}
-word getCO21() { return getCO2();}
-byte getTVOC1() { return getTVOC();}
+BYTE getDisplayBrightness1() { return getDisplayBrightness(); }
+void setDisplayBrightness1(BYTE value) { return setDisplayBrightness(value); }
+BYTE getTemperature1() { return getTemperature(); }
+word getHumidity1() { return getHumidity(); }
+word getCO21() { return getCO2(); }
+byte getTVOC1() { return getTVOC(); }
 
 ZUNO_SETUP_CHANNELS(
     ZUNO_SWITCH_MULTILEVEL(getDisplayBrightness1, setDisplayBrightness1),
@@ -40,7 +40,8 @@ ZUNO_SETUP_CONFIGPARAMETERS(
     ZUNO_CONFIG_PARAMETER_1B("Temperature update threshold", 1, 255, 2),
     ZUNO_CONFIG_PARAMETER_1B("Humidity update threshold", 1, 255, 5),
     ZUNO_CONFIG_PARAMETER_1B("Temperature correction (deg * 10 + 100)", 0, 200, 100),
-    ZUNO_CONFIG_PARAMETER_1B("Humidity correction (% * 10 + 100)", 0, 200, 100));
+    ZUNO_CONFIG_PARAMETER_1B("Humidity correction (% * 10 + 100)", 0, 200, 100),
+    ZUNO_CONFIG_PARAMETER_1B("Trigger CO2 calibration (set to 1)", 0, 1, 0));
 
 ZUNO_SETUP_CFGPARAMETER_HANDLER(configParameterChanged2);
 
@@ -51,6 +52,12 @@ void updateFromCFGParams()
 
 void configParameterChanged2(byte param, uint32_t value)
 {
+  if (param == CONFIG_CO2_START_CALIBRATION && value == 1)
+  {
+    triggerCO2Calibration();
+    return;
+  }
+
   zunoSaveCFGParam(param, value);
   updateFromCFGParams();
 }
