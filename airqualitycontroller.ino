@@ -15,13 +15,22 @@ s_pin TVOC_A_PIN = 9;
 #define CHANNEL_DEFAULT 1
 #define CHANNEL_TEMPERATURE 2
 #define CHANNEL_HUMIDITY 3
+#define CHANNEL_CO2 4
+#define CHANNEL_TVOC 5
 
 word s_humidity = 0;
 word s_temperature = 0;
 byte s_displayBrightness = 100;
+word s_co2 = 400; // ppm
+byte s_tvoc_level = 0;
+word s_pm25 = 5; // ppm
 
 #define ZUNO_SENSOR_MULTILEVEL_TEMPERATURE_2(GETTER) ZUNO_SENSOR_MULTILEVEL(ZUNO_SENSOR_MULTILEVEL_TYPE_TEMPERATURE, SENSOR_MULTILEVEL_SCALE_CELSIUS, SENSOR_MULTILEVEL_SIZE_TWO_BYTES, SENSOR_MULTILEVEL_PRECISION_ONE_DECIMAL, GETTER)
 #define ZUNO_SENSOR_MULTILEVEL_HUMIDITY_2(GETTER) ZUNO_SENSOR_MULTILEVEL(ZUNO_SENSOR_MULTILEVEL_TYPE_RELATIVE_HUMIDITY, SENSOR_MULTILEVEL_SCALE_PERCENTAGE_VALUE, SENSOR_MULTILEVEL_SIZE_TWO_BYTES, SENSOR_MULTILEVEL_PRECISION_ONE_DECIMAL, GETTER)
+#define ZUNO_SENSOR_MULTILEVEL_CO2_LEVEL_2(GETTER) ZUNO_SENSOR_MULTILEVEL(ZUNO_SENSOR_MULTILEVEL_TYPE_CO2_LEVEL, SENSOR_MULTILEVEL_SCALE_PARTS_PER_MILLION, SENSOR_MULTILEVEL_SIZE_TWO_BYTES, SENSOR_MULTILEVEL_PRECISION_ZERO_DECIMALS, GETTER)
+#define ZUNO_SENSOR_MULTILEVEL_PM2_5_LEVEL(GETTER) ZUNO_SENSOR_MULTILEVEL(ZUNO_SENSOR_MULTILEVEL_TYPE_GENERAL_PURPOSE_VALUE, SENSOR_MULTILEVEL_SCALE_PARTS_PER_MILLION, SENSOR_MULTILEVEL_SIZE_TWO_BYTES, SENSOR_MULTILEVEL_PRECISION_ZERO_DECIMALS, GETTER)
+#define ZUNO_SENSOR_MULTILEVEL_VOLATILE_ORGANIC_COMPOUND(GETTER) ZUNO_SENSOR_MULTILEVEL(ZUNO_SENSOR_MULTILEVEL_TYPE_VOLATILE_ORGANIC_COMPOUND, SENSOR_MULTILEVEL_SCALE_DIMENSIONLESS_VALUE, SENSOR_MULTILEVEL_SIZE_ONE_BYTE, SENSOR_MULTILEVEL_PRECISION_ZERO_DECIMALS, GETTER)
+
 
 ZUNO_ENABLE(
     MODERN_MULTICHANNEL // No clusters, the first channel is mapped to NIF only
@@ -30,7 +39,10 @@ ZUNO_ENABLE(
 ZUNO_SETUP_CHANNELS(
     ZUNO_SWITCH_MULTILEVEL(getDisplayBrightness, setDisplayBrightness),
     ZUNO_SENSOR_MULTILEVEL_TEMPERATURE_2(s_temperature),
-    ZUNO_SENSOR_MULTILEVEL_HUMIDITY_2(s_humidity));
+    ZUNO_SENSOR_MULTILEVEL_HUMIDITY_2(s_humidity),
+    ZUNO_SENSOR_MULTILEVEL_CO2_LEVEL_2(s_co2),
+    ZUNO_SENSOR_MULTILEVEL_VOLATILE_ORGANIC_COMPOUND(s_tvoc_level),
+    ZUNO_SENSOR_MULTILEVEL_PM2_5_LEVEL(s_pm25));
 
 enum
 {
@@ -63,10 +75,15 @@ unsigned long s_lastReportedTimeHumidity = 0;
 word s_temp_hum_interval = 60 * 20; // 20 mins default, min 30 seconds
 word s_temp_threshold = 2;
 word s_hum_threshold = 5;
+
 word s_temp_correct = 0;
 word s_hum_correct = 0;
 
-byte s_tvoc_level = 0;
+
+word s_tvocLastReported = 0;
+word s_temp_tvoc_interval = 60 * 20; // 20 mins default, min 30 seconds
+word s_tvoc_threshold = 0;
+unsigned long s_lastReportedTimeTVOC = 0;
 
 void updateFromCFGParams()
 {
@@ -271,6 +288,26 @@ void reportUpdates(bool firstTime = false)
     Serial.print(reportHumidity);
     Serial.print(" ");
     Serial.print(timePassedHumidity);
+    Serial.println();
+#endif
+
+    return;
+  }
+
+  bool reportTVOC = (abs(s_tvoc_level - s_tvocLastReported) > s_tvoc_threshold);
+  bool timePassedTVOC = (curMillis - s_lastReportedTimeTVOC > (unsigned long)s_temp_tvoc_interval * 1000);
+
+  if (firstTime || reportTVOC || timePassedTVOC)
+  {
+    zunoSendReport(CHANNEL_TVOC);
+    s_tvocLastReported = s_tvoc_level;
+    s_lastReportedTimeTVOC = curMillis;
+
+#if SERIAL_LOGS
+    Serial.print("TVOC update sent, because: ");
+    Serial.print(reportTVOC);
+    Serial.print(" ");
+    Serial.print(timePassedTVOC);
     Serial.println();
 #endif
 
