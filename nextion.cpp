@@ -5,6 +5,7 @@
 
 #include "temphum.h"
 #include "tvoc.h"
+#include "co2.h"
 
 EasyNex s_display(Serial1); // Create an object of EasyNex class with the name < myNex >
                             // Set as parameter the Hardware Serial you are going to use
@@ -80,6 +81,17 @@ int tvocToSeverity(int tvoc)
     return 4;
 }
 
+int co2ToSeverity(int co2)
+{
+    if (co2 <= 800)
+        return 1;
+    if (co2 <= 1100)
+        return 2;
+    if (co2 <= 2000)
+        return 3;
+    return 4;
+}
+
 void updateTemperatureDisplay()
 {
     s_display.writeStr("vis temp_disp,1");
@@ -101,9 +113,17 @@ void updateTVOCDisplay()
     s_display.writeNum("co_disp.bco", colorFromSeverity(tvocToSeverity(getTVOC())));
 }
 
+void updateCO2Display()
+{
+    s_display.writeStr("vis co2_disp,1");
+    s_display.writeNum("co2_disp.val", getCO2());
+    s_display.writeNum("co2_disp.bco", colorFromSeverity(co2ToSeverity(getCO2())));
+}
+
 void updateDisplay()
 {
     updateTemperatureDisplay();
     updateHumidityDisplay();
     updateTVOCDisplay();
+    updateCO2Display();
 }
