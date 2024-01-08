@@ -27,6 +27,8 @@ void setupDisplay()
 {
     s_display.begin(9600);
     delay(500); // Wait for Nextion to start
+
+    // setup colors
 }
 
 int colorFromSeverity(int severity)
@@ -94,30 +96,26 @@ int co2ToSeverity(int co2)
 
 void updateTemperatureDisplay()
 {
-    s_display.writeStr("vis temp_disp,1");
-    s_display.writeNum("temp_disp.val", getTemperature());
-    s_display.writeNum("temp_disp.bco", colorFromSeverity(temperatureToSeverity(getTemperature() / 10)));
+    s_display.writeNum("temp", getTemperature());
+    s_display.writeNum("temp_severity", temperatureToSeverity(getTemperature() / 10));
 }
 
 void updateHumidityDisplay()
 {
-    s_display.writeStr("vis hum_disp,1");
-    s_display.writeNum("hum_disp.val", getHumidity());
-    s_display.writeNum("hum_disp.bco", colorFromSeverity(humidityToSeverity(getHumidity() / 10)));
+    s_display.writeNum("hum", getHumidity());
+    s_display.writeNum("hum_severity", humidityToSeverity(getHumidity() / 10));
 }
 
 void updateTVOCDisplay()
 {
-    s_display.writeStr("vis co_disp,1");
-    s_display.writeNum("co_disp.val", getTVOC());
-    s_display.writeNum("co_disp.bco", colorFromSeverity(tvocToSeverity(getTVOC())));
+    s_display.writeNum("tvoc", getTVOCPercent());
+    s_display.writeNum("tvoc_severity", tvocToSeverity(getTVOC()));
 }
 
 void updateCO2Display()
 {
-    s_display.writeStr("vis co2_disp,1");
-    s_display.writeNum("co2_disp.val", getCO2());
-    s_display.writeNum("co2_disp.bco", colorFromSeverity(co2ToSeverity(getCO2())));
+    s_display.writeNum("co2", getCO2());
+    s_display.writeNum("co2_severity", co2ToSeverity(getCO2()));
 }
 
 void updateDisplay()

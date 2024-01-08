@@ -5,7 +5,12 @@
 
 const byte co2_hd_pin = 6;
 
+const int PREHEAT_DURATION = 90 * 1000;    // 1.5 min
 const int CALIBRATION_TIME = 8 * 1000; // 8 seconds
+
+bool s_preheat = false;
+dword s_preheatStartedTime = 0;
+
 bool s_inCalibration = false;
 dword s_calibrationStartedTime = 0;
 
@@ -29,6 +34,10 @@ void setupCO2()
     // set hd pin
     pinMode(co2_hd_pin, OUTPUT);
     digitalWrite(co2_hd_pin, HIGH);
+
+    // enable pre-heat
+    s_preheat = true;
+    s_preheatStartedTime = millis();
 }
 
 char getCheckSum(uint8_t *packet)
@@ -94,6 +103,29 @@ void updateCalibration()
 
 void updateCO2(bool firstTime)
 {
+    if (s_preheat)
+    {
+        dword curPreheatDuration = millis() - s_preheatStartedTime;
+        if (curPreheatDuration < PREHEAT_DURATION)
+        {
+#if SERIAL_LOGS
+            Serial.println("No CO2 value, in preheat");
+            Serial.print("Preheat remaining: ");
+            Serial.println(PREHEAT_DURATION - curPreheatDuration);
+#endif
+            s_co2 = 0;
+            return; // still in pre-heat
+        }
+        if (curPreheatDuration > PREHEAT_DURATION)
+        {
+#if SERIAL_LOGS
+            Serial.println("Preheat finished");
+#endif
+            s_preheat = false;
+            s_preheatStartedTime = 0;
+        }
+    }
+
     updateCalibration();
 
     // read everything which might stay there
@@ -112,7 +144,7 @@ void updateCO2(bool firstTime)
 #if SERIAL_LOGS
         Serial.println("No answer");
 #endif
-        s_co2 = 0;
+        s_co2 = 1;
 
         // read everything else
         while (s_co2_serial.available())
@@ -133,7 +165,7 @@ void updateCO2(bool firstTime)
 #endif
     if (!ok)
     {
-        s_co2 = 1;
+        s_co2 = 2;
         return;
     }
 
@@ -164,7 +196,7 @@ void updateCO2(bool firstTime)
         Serial.println("Wrong answer");
 #endif
 
-        s_co2 = 2;
+        s_co2 = 3;
         return;
     }
 
@@ -180,7 +212,7 @@ bool reportCO2Updates(bool firstTime)
     Serial.println();
 #endif
 
-    if (s_co2 < 100)
+    if (s_co2 <= 100)
         return false; // wrong value, let's skip it
 
     unsigned long curMillis = millis();
