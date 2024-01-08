@@ -2,7 +2,10 @@
 
 #include "common.h"
 
+// returns temp (degrees Celcius) * 10 as two bytes
 word getTemperature();
+
+// returns humidity (percent) * 10 as two bytes
 word getHumidity();
 
 void setupDHT();

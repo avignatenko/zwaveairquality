@@ -2,7 +2,7 @@
 
 #include "common.h"
 
-BYTE getDisplayBrightness();
-void setDisplayBrightness(BYTE newValue);
+byte getDisplayBrightness();
+void setDisplayBrightness(byte newValue);
 void setupDisplay();
 void updateDisplay();

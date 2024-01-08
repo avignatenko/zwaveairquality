@@ -18,6 +18,12 @@ byte getTVOC()
     return s_tvoc_level;
 }
 
+byte getTVOCPercent()
+{
+    return s_tvoc_level;
+}
+
+
 void updateTVOC(bool firstTime)
 {
     // wait for the next HIGH pulse

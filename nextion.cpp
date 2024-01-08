@@ -12,12 +12,12 @@ EasyNex s_display(Serial1); // Create an object of EasyNex class with the name <
 
 byte s_displayBrightness = 100;
 
-BYTE getDisplayBrightness()
+byte getDisplayBrightness()
 {
     return s_displayBrightness;
 }
 
-void setDisplayBrightness(BYTE newValue)
+void setDisplayBrightness(byte newValue)
 {
     s_displayBrightness = newValue;
     s_display.writeNum("dim", s_displayBrightness);
