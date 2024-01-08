@@ -38,8 +38,12 @@ word getHumidity1() { return getHumidity(); }
 word getCO21() { return getCO2(); }
 byte getTVOCPercent1() { return getTVOCPercent(); }
 
+byte getDisplayNightMode1() { return getDisplayNightMode(); }
+void setNightMode1(byte newValue) { setDisplayNightMode(newValue); }
+
 ZUNO_SETUP_CHANNELS(
     ZUNO_SWITCH_MULTILEVEL(getDisplayBrightness1, setDisplayBrightness1),
+    ZUNO_SWITCH_BINARY(getDisplayNightMode1, setNightMode1),
     ZUNO_SENSOR_MULTILEVEL_TEMPERATURE_2(getTemperature1),
     ZUNO_SENSOR_MULTILEVEL_HUMIDITY_2(getHumidity1),
     ZUNO_SENSOR_MULTILEVEL_CO2_LEVEL_2(getCO21),
