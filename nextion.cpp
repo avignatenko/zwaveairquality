@@ -6,12 +6,19 @@
 #include "temphum.h"
 #include "tvoc.h"
 #include "co2.h"
+#include "lux.h"
 
 EasyNex s_display(Serial1); // Create an object of EasyNex class with the name < myNex >
                             // Set as parameter the Hardware Serial you are going to use
 
 byte s_displayBrightness = 100;
 bool s_nightMode = false;
+
+bool s_auto_night_mode = false;
+uint16_t s_night_mode_luminance = 0;
+
+bool isAutoNightMode() { return s_auto_night_mode; }
+uint16_t getNightModeLuminance() { return s_night_mode_luminance; }
 
 byte getDisplayBrightness()
 {
@@ -158,8 +165,31 @@ void updateCO2Display()
     s_display.writeNum("co2_severity", co2ToSeverity(getCO2()));
 }
 
+void updateNightMode()
+{
+    if (!isAutoNightMode())
+        return;
+
+    bool isNight = (getLuminance() <= getNightModeLuminance());
+    setDisplayNightMode(isNight);
+}
+
+void updateDisplayFromCFGParams()
+{
+    s_auto_night_mode = zunoLoadCFGParam(CONFIG_AUTO_NIGHT_MODE);
+    s_night_mode_luminance = zunoLoadCFGParam(CONFIG_NIGHT_MODE_LUMINANCE);
+
+#if SERIAL_LOGS
+    Serial.print("Updated display params: ");
+    Serial.print(s_auto_night_mode);
+    Serial.print(" ");
+    Serial.println(s_night_mode_luminance);
+#endif
+}
+
 void updateDisplay()
 {
+    updateNightMode();
     updateTemperatureDisplay();
     updateHumidityDisplay();
     updateTVOCDisplay();

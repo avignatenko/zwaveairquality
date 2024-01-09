@@ -8,3 +8,4 @@ byte getDisplayNightMode();
 void setDisplayNightMode(byte val);
 void setupDisplay();
 void updateDisplay();
+void updateDisplayFromCFGParams();

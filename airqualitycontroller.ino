@@ -5,6 +5,8 @@
 #include "tvoc.h"
 #include "co2.h"
 #include "nextion.h"
+#include "lux.h"
+
 #include "common.h"
 
 word s_pm25 = 5; // ppm
@@ -56,13 +58,16 @@ ZUNO_SETUP_CONFIGPARAMETERS(
     ZUNO_CONFIG_PARAMETER_1B("Humidity update threshold", 1, 255, 5),
     ZUNO_CONFIG_PARAMETER_1B("Temperature correction (deg * 10 + 100)", 0, 200, 100),
     ZUNO_CONFIG_PARAMETER_1B("Humidity correction (% * 10 + 100)", 0, 200, 100),
-    ZUNO_CONFIG_PARAMETER_1B("Trigger CO2 calibration (set to 1)", 0, 1, 0));
+    ZUNO_CONFIG_PARAMETER_1B("Trigger CO2 calibration (set to 1)", 0, 1, 0),
+    ZUNO_CONFIG_PARAMETER_1B("Auto night mode (set to 1)", 0, 1, 0),
+    ZUNO_CONFIG_PARAMETER_1B("Night mode luminance (lux)", 0, 100, 3));
 
 ZUNO_SETUP_CFGPARAMETER_HANDLER(configParameterChanged2);
 
 void updateFromCFGParams()
 {
   updateTempHumFromCFGParams();
+  updateDisplayFromCFGParams();
 }
 
 void configParameterChanged2(byte param, uint32_t value)
@@ -105,6 +110,9 @@ void setup()
   Serial.begin(115200);
 #endif
 
+  // set 12-bit DAC for Z-UNO
+  analogReadResolution(12);
+
   updateFromCFGParams();
 
   setupDisplay();
@@ -127,6 +135,12 @@ void loop()
   updateCO2();
 
   reportUpdates();
+
+  uint16_t lux = getLuminance();
+#if SERIAL_LOGS
+  Serial.print("Lux: ");
+  Serial.println(lux);
+#endif
 
   delay(2000);
 }
