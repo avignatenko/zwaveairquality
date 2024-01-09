@@ -78,25 +78,6 @@ void setupDisplay()
     setDisplayNightMode(0);
 }
 
-int colorFromSeverity(int severity)
-{
-    switch (severity)
-    {
-    case 0:
-        return 1469; // blue
-    case 1:
-        return 38592; // green
-    case 2:
-        return 65248; // yellow
-    case 3:
-        return 64512; // amber
-    case 4:
-        return 63495; // red
-    default:
-        return 0;
-    }
-}
-
 int temperatureToSeverity(int temp)
 {
     if (temp < 23)
