@@ -136,7 +136,7 @@ void updateHumidityDisplay()
 
 void updateTVOCDisplay()
 {
-    s_display.writeNum("tvoc", getTVOCPercent());
+    s_display.writeNum("tvoc", getTVOC());
     s_display.writeNum("tvoc_severity", tvocToSeverity(getTVOC()));
 }
 

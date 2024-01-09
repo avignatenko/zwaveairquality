@@ -20,7 +20,7 @@ byte getTVOC()
 
 byte getTVOCPercent()
 {
-    return s_tvoc_level;
+    return getTVOC() * 10; // map [0 .. 10 ] -> [0 .. 100]
 }
 
 
