@@ -2,7 +2,7 @@
 
 #include "Arduino.h"
 
-#define SERIAL_LOGS 1
+#define SERIAL_LOGS 0
 
 enum
 {

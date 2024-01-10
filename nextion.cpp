@@ -16,6 +16,8 @@ bool s_nightMode = false;
 
 bool s_auto_night_mode = false;
 uint16_t s_night_mode_luminance = 0;
+uint16_t s_night_mode_luminance_hysteresis = 5; // day mode if lum >= s_night_mode_luminance + s_night_mode_luminance_hysteresis
+                                                // night mode if lum <= s_night_mode_luminance - s_night_mode_luminance_hysteresis
 
 bool isAutoNightMode() { return s_auto_night_mode; }
 uint16_t getNightModeLuminance() { return s_night_mode_luminance; }
@@ -151,7 +153,13 @@ void updateNightMode()
     if (!isAutoNightMode())
         return;
 
-    bool isNight = (getLuminance() <= getNightModeLuminance());
+    const uint16_t luminance = getLuminance();
+    const uint16_t histLowerBound =  s_night_mode_luminance - s_night_mode_luminance_hysteresis;
+    const uint16_t histUpperBound =  s_night_mode_luminance + s_night_mode_luminance_hysteresis;
+    
+    if (luminance > histLowerBound && luminance < histUpperBound) return; // no change, hysteresis in effect
+
+    bool isNight = (getLuminance() <= histLowerBound);
     setDisplayNightMode(isNight);
 }
 
@@ -159,6 +167,9 @@ void updateDisplayFromCFGParams()
 {
     s_auto_night_mode = zunoLoadCFGParam(CONFIG_AUTO_NIGHT_MODE);
     s_night_mode_luminance = zunoLoadCFGParam(CONFIG_NIGHT_MODE_LUMINANCE);
+
+    if (s_night_mode_luminance < s_night_mode_luminance_hysteresis)
+        s_night_mode_luminance = s_night_mode_luminance_hysteresis;
 
 #if SERIAL_LOGS
     Serial.print("Updated display params: ");
