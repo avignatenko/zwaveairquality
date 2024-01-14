@@ -11,3 +11,4 @@ void updateCO2(bool firstTime = false);
 bool reportCO2Updates(bool firstTime = false);
 
 void triggerCO2Calibration();
+void enableAutoCalibration(bool enable);

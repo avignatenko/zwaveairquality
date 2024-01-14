@@ -5,8 +5,8 @@
 
 const byte co2_hd_pin = 6;
 
-const int PREHEAT_DURATION = 90 * 1000;    // 1.5 min
-const int CALIBRATION_TIME = 8 * 1000; // 8 seconds
+const int PREHEAT_DURATION = 90 * 1000; // 1.5 min
+const int CALIBRATION_TIME = 8 * 1000;  // 8 seconds
 
 bool s_preheat = false;
 dword s_preheatStartedTime = 0;
@@ -74,10 +74,11 @@ void triggerCO2Calibration()
 #endif
 }
 
-void updateCalibration()
+// returns true if still in calibration mode
+bool updateCalibration()
 {
     if (!s_inCalibration)
-        return;
+        return false;
 
     unsigned long delta = millis() - s_calibrationStartedTime;
 
@@ -98,35 +99,59 @@ void updateCalibration()
 
         // fixme: move out of there to main code
         zunoSaveCFGParam(CONFIG_CO2_START_CALIBRATION, 0);
+
+        return false;
     }
+
+    return true;
+}
+
+void enableAutoCalibration(bool enable)
+{
+}
+
+// returns true if still in pre-heat
+bool updatePreheat()
+{
+    if (!s_preheat)
+        return false;
+
+    dword curPreheatDuration = millis() - s_preheatStartedTime;
+
+    if (curPreheatDuration > PREHEAT_DURATION)
+    {
+#if SERIAL_LOGS
+        Serial.println("Preheat finished");
+#endif
+        s_preheat = false;
+        s_preheatStartedTime = 0;
+
+        return false;
+    }
+
+#if SERIAL_LOGS
+    Serial.println("No CO2 value, in preheat");
+    Serial.print("Preheat remaining: ");
+    Serial.println(PREHEAT_DURATION - curPreheatDuration);
+#endif
+
+    return true; // still in pre-heat
 }
 
 void updateCO2(bool firstTime)
 {
-    if (s_preheat)
+    // deal with preheat, return if still in pre-heat
+    if (updatePreheat())
     {
-        dword curPreheatDuration = millis() - s_preheatStartedTime;
-        if (curPreheatDuration < PREHEAT_DURATION)
-        {
-#if SERIAL_LOGS
-            Serial.println("No CO2 value, in preheat");
-            Serial.print("Preheat remaining: ");
-            Serial.println(PREHEAT_DURATION - curPreheatDuration);
-#endif
-            s_co2 = 0;
-            return; // still in pre-heat
-        }
-        if (curPreheatDuration > PREHEAT_DURATION)
-        {
-#if SERIAL_LOGS
-            Serial.println("Preheat finished");
-#endif
-            s_preheat = false;
-            s_preheatStartedTime = 0;
-        }
+        s_co2 = 0;
+        return;
     }
 
-    updateCalibration();
+    if (updateCalibration())
+    {
+        // return, but keep co2 as before
+        return;
+    }
 
     // read everything which might stay there
     while (s_co2_serial.available())
