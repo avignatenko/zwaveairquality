@@ -31,6 +31,7 @@ word getCO2()
 void setupCO2()
 {
     s_co2_serial.begin(9600);
+
     // set hd pin
     pinMode(co2_hd_pin, OUTPUT);
     digitalWrite(co2_hd_pin, HIGH);
@@ -38,6 +39,9 @@ void setupCO2()
     // enable pre-heat
     s_preheat = true;
     s_preheatStartedTime = millis();
+
+    // disable auto-calibration (todo: move to properties)
+    enableAutoCalibration(false);
 }
 
 char getCheckSum(uint8_t *packet)
@@ -104,10 +108,6 @@ bool updateCalibration()
     }
 
     return true;
-}
-
-void enableAutoCalibration(bool enable)
-{
 }
 
 // returns true if still in pre-heat
@@ -221,16 +221,32 @@ void updateCO2(bool firstTime)
 
     if (reply != REPLY_OK)
     {
+#if SERIAL_LOGS
+        Serial.print("Error reading CO2: ");
+        Serial.print(reply);
+        Serial.println();
+#endif
         s_co2 = (word)reply;
         return;
     }
-   
+
     byte c1 = bufferIn[0];
     byte c2 = bufferIn[1];
 
     word value = (word)c1 * 256 + (word)c2;
-    
+
     s_co2 = value;
+}
+
+void enableAutoCalibration(bool enable)
+{
+    sendCommand(0x79, enable ? 0xA0 : 0x00);
+
+#if SERIAL_LOGS
+    Serial.print("Sent auto calibration enable: ");
+    Serial.print(enable);
+    Serial.println();
+#endif
 }
 
 bool reportCO2Updates(bool firstTime)
