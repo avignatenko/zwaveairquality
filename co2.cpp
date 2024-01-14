@@ -138,7 +138,7 @@ bool updatePreheat()
     return true; // still in pre-heat
 }
 
-void sendCommand(uint8_t command, uint8_t arg)
+void sendCommand(uint8_t command, uint8_t arg = 0x00)
 {
     // read everything which might stay there
     while (s_co2_serial.available())
@@ -198,26 +198,28 @@ Reply readReply(uint8_t command, uint8_t bufferOut[6])
 
 void updateCO2(bool firstTime)
 {
-    // deal with preheat, return if still in pre-heat
+    // return if still in pre-heat
     if (updatePreheat())
     {
         s_co2 = 0;
         return;
     }
 
+    // return if in calibration process
     if (updateCalibration())
     {
         // return, but keep co2 as before
         return;
     }
 
-    // 0x86 - Read CO2 concentration
-    sendCommand(0x86, 0x00);
+    // Read CO2 concentration
+    const uint8_t READ_CO2_COMMAND = 0x86;
+    sendCommand(READ_CO2_COMMAND);
 
     // read co2 concentraction reply
 
     uint8_t bufferIn[6];
-    Reply reply = readReply(0x86, bufferIn);
+    Reply reply = readReply(READ_CO2_COMMAND, bufferIn);
 
     if (reply != REPLY_OK)
     {
@@ -240,7 +242,8 @@ void updateCO2(bool firstTime)
 
 void enableAutoCalibration(bool enable)
 {
-    sendCommand(0x79, enable ? 0xA0 : 0x00);
+    const uint8_t ENABLE_AUTO_CALIBRATION_COMMAND = 0x79;
+    sendCommand(ENABLE_AUTO_CALIBRATION_COMMAND, enable ? 0xA0 : 0x00);
 
 #if SERIAL_LOGS
     Serial.print("Sent auto calibration enable: ");

@@ -111,9 +111,6 @@ void setup()
   Serial.begin(115200);
 #endif
 
-  // set 12-bit DAC for Z-UNO
-  analogReadResolution(12);
-
   updateFromCFGParams();
 
   setupDisplay();
