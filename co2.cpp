@@ -138,6 +138,64 @@ bool updatePreheat()
     return true; // still in pre-heat
 }
 
+void sendCommand(uint8_t command, uint8_t arg)
+{
+    // read everything which might stay there
+    while (s_co2_serial.available())
+        s_co2_serial.read();
+
+    // send data request
+    uint8_t bufferOut[9] = {0xFF, 0x01, command, arg, 0x00, 0x00, 0x00, 0x00, 0x00};
+    bufferOut[8] = getCheckSum(bufferOut);
+    s_co2_serial.write(bufferOut, 9);
+}
+
+enum Reply
+{
+    REPLY_OK = 0,
+    REPLY_NO_ANSWER,
+    REPLY_WRONG_LENGTH,
+    REPLY_WRONG_ID,
+    REPLY_WRONG_CHECKSUM
+};
+
+Reply readReply(uint8_t command, uint8_t bufferOut[6])
+{
+
+    // read co2 concentraction reply
+    uint8_t bufferIn[9];
+    byte read = s_co2_serial.readBytes(bufferIn, 9);
+    if (read == 0)
+        return REPLY_NO_ANSWER;
+
+    if (read != 9)
+    {
+        // read everything else
+        while (s_co2_serial.available())
+            s_co2_serial.read();
+
+        return REPLY_WRONG_LENGTH;
+    }
+
+    // parse answer
+
+    bool ok = true;
+    ok = ok && (bufferIn[0] == 0xFF);
+    ok = ok && (bufferIn[1] == command);
+
+    if (!ok)
+        return REPLY_WRONG_ID;
+
+    ok = ok && (getCheckSum(bufferIn) == bufferIn[8]);
+
+    if (!ok)
+        return REPLY_WRONG_CHECKSUM;
+
+    memcpy(bufferOut, bufferIn + 2, 6);
+
+    return REPLY_OK;
+}
+
 void updateCO2(bool firstTime)
 {
     // deal with preheat, return if still in pre-heat
@@ -153,78 +211,25 @@ void updateCO2(bool firstTime)
         return;
     }
 
-    // read everything which might stay there
-    while (s_co2_serial.available())
-        s_co2_serial.read();
-
-    // send data request
-    uint8_t bufferOut[9] = {0xFF, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79};
-    s_co2_serial.write(bufferOut, 9);
+    // 0x86 - Read CO2 concentration
+    sendCommand(0x86, 0x00);
 
     // read co2 concentraction reply
-    uint8_t bufferIn[9];
-    byte read = s_co2_serial.readBytes(bufferIn, 9);
-    if (read != 9)
+
+    uint8_t bufferIn[6];
+    Reply reply = readReply(0x86, bufferIn);
+
+    if (reply != REPLY_OK)
     {
-#if SERIAL_LOGS
-        Serial.println("No answer");
-#endif
-        s_co2 = 1;
-
-        // read everything else
-        while (s_co2_serial.available())
-            s_co2_serial.read();
-
+        s_co2 = (word)reply;
         return;
     }
-
-    // parse answer
-
-    bool ok = true;
-    ok = ok && (bufferIn[0] == 0xFF);
-    ok = ok && (bufferIn[1] == 0x86);
-
-#if SERIAL_LOGS
-    Serial.print("Ok id: ");
-    Serial.println(ok);
-#endif
-    if (!ok)
-    {
-        s_co2 = 2;
-        return;
-    }
-
-    byte c1 = bufferIn[2];
-    byte c2 = bufferIn[3];
+   
+    byte c1 = bufferIn[0];
+    byte c2 = bufferIn[1];
 
     word value = (word)c1 * 256 + (word)c2;
-
-    ok = ok && (getCheckSum(bufferIn) == bufferIn[8]);
-
-#if SERIAL_LOGS
-    Serial.print("Bytes: ");
-    Serial.print(bufferIn[4]);
-    Serial.print(" ");
-    Serial.print(bufferIn[5]);
-    Serial.print(" ");
-    Serial.print(bufferIn[6]);
-    Serial.print(" ");
-    Serial.println(bufferIn[7]);
-
-    Serial.print("Ok checksum: ");
-    Serial.println(ok);
-#endif
-
-    if (!ok)
-    {
-#if SERIAL_LOGS
-        Serial.println("Wrong answer");
-#endif
-
-        s_co2 = 3;
-        return;
-    }
-
+    
     s_co2 = value;
 }
 
