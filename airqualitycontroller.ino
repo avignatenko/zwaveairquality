@@ -114,11 +114,11 @@ void setup()
   updateFromCFGParams();
 
   setupDisplay();
-  setupDHT();
+  setupTempHumSensor();
   setupTVOC();
   setupCO2();
 
-  updateDHT();
+  updateTempHumSensor();
   updateTVOC(true); // first time
   updateCO2(true);
 
@@ -128,7 +128,7 @@ void setup()
 void loop()
 {
 
-  updateDHT();
+  updateTempHumSensor();
   updateTVOC();
   updateCO2();
 

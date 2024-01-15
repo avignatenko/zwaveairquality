@@ -1,5 +1,6 @@
-#include "temphum.h"
+#include "temphumsensirion.h"
 
+#ifdef SENSIRION_DHT_SENSOR
 #include "ZUNO_DHT.h"
 
 #define PIN_DHT 03
@@ -41,12 +42,12 @@ void updateTempHumFromCFGParams()
     s_hum_correct = zunoLoadCFGParam(CONFIG_HUMIDITY_CORRECTION_PERCENT);
 }
 
-void setupDHT()
+void setupTempHumSensor()
 {
     dht22_sensor.begin();
 }
 
-void updateDHT()
+void updateTempHumSensor()
 {
     byte result;
     result = dht22_sensor.read(true);
@@ -124,3 +125,4 @@ bool reportHumUpdates(bool firstTime)
 
     return false;
 }
+#endif

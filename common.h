@@ -4,6 +4,10 @@
 
 #define SERIAL_LOGS 0
 
+// choose temp & humidity sensor
+//#define SENSIRION_DHT_SENSOR
+#define DHT22_SENSOR 
+
 enum
 {
   CONFIG_TEMPERATURE_HUMIDITY_INTERVAL_SEC = 64,
