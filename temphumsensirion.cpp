@@ -1,12 +1,10 @@
 #include "temphumsensirion.h"
 
 #ifdef SENSIRION_DHT_SENSOR
-#include "ZUNO_DHT.h"
 
-#define PIN_DHT 03
+#include "SHTSensor.h"
 
-// temp & humidity sensor (DHT22)
-DHT dht22_sensor(PIN_DHT, DHT22);
+SHTSensor sht;
 
 word s_humidity = 0;
 word s_humidityLastReported = 0;
@@ -32,7 +30,6 @@ word getHumidity()
     return s_humidity;
 }
 
-
 void updateTempHumFromCFGParams()
 {
     s_temp_hum_interval = zunoLoadCFGParam(CONFIG_TEMPERATURE_HUMIDITY_INTERVAL_SEC);
@@ -44,24 +41,38 @@ void updateTempHumFromCFGParams()
 
 void setupTempHumSensor()
 {
-    dht22_sensor.begin();
+    Wire.begin();
+
+    if (sht.init())
+    {
+#if SERIAL_LOGS
+        Serial.println("SHT init success");
+#endif
+    }
+    else
+    {
+#if SERIAL_LOGS
+        Serial.println("SHT init failed");
+#endif
+    }
+    sht.setAccuracy(SHTSensor::SHT_ACCURACY_HIGH); // only supported by SHT3x
 }
 
 void updateTempHumSensor()
 {
-    byte result;
-    result = dht22_sensor.read(true);
-
-    if (result == ZunoErrorOk)
+    if (sht.readSample())
     {
-        s_humidity = (dht22_sensor.readHumidity() * 10) + (s_hum_correct - 100);
-        s_temperature = (dht22_sensor.readTemperature() * 10) + (s_temp_correct - 100);
+        s_humidity = (sht.getHumidity() * 10) + (s_hum_correct - 100);
+        s_temperature = (sht.getTemperature() * 10) + (s_temp_correct - 100);
     }
     else
     {
-
         s_humidity = -100 * 10;
         s_temperature = -100 * 10;
+
+#if SERIAL_LOGS
+        Serial.println("SHT Read Error!");
+#endif
     }
 }
 

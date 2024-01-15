@@ -1,0 +1,3 @@
+[submodule "arduino-sht"]
+	path = arduino-sht
+	url = https://github.com/Sensirion/arduino-sht.git

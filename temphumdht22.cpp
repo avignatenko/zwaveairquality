@@ -1,6 +1,6 @@
 #include "temphumdht22.h"
 
-//#ifdef DHT22_SENSOR
+#ifdef DHT22_SENSOR
 
 #include "ZUNO_DHT.h"
 
@@ -127,4 +127,4 @@ bool reportHumUpdates(bool firstTime)
     return false;
 }
 
-//#endif
+#endif

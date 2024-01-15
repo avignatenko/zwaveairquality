@@ -5,8 +5,8 @@
 #define SERIAL_LOGS 0
 
 // choose temp & humidity sensor
-//#define SENSIRION_DHT_SENSOR
-#define DHT22_SENSOR 
+#define SENSIRION_DHT_SENSOR
+//#define DHT22_SENSOR 
 
 enum
 {
