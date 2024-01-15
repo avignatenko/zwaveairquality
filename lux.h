@@ -2,6 +2,7 @@
 
 #include "common.h"
 
-const int TEMPT6000_PIN = 5;
+const int TEMPT6000_PIN = A1;
 
+void setupLuxSensor();
 uint16_t getLuminance();

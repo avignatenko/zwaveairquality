@@ -15,13 +15,13 @@ word s_temp_hum_interval = 60 * 20; // 20 mins default, min 30 seconds
 // returns temp (degrees Celcius) * 10 as two bytes
 word getTemperature()
 {
-    return (getTemperatureInternal() * 10) + (s_temp_correct - 100);
+    return round(getTemperatureInternal() * 10) + (s_temp_correct - 100);
 }
 
 // returns humidity (percent) * 10 as two bytes
 word getHumidity()
 {
-    return (getHumidityInternal() * 10) + (s_hum_correct - 100);
+    return round(getHumidityInternal() * 10) + (s_hum_correct - 100);
 }
 
 bool reportTempUpdates(bool firstTime)
@@ -30,9 +30,13 @@ bool reportTempUpdates(bool firstTime)
 
 #if SERIAL_LOGS
     Serial.print("Temp ");
-    Serial.print(s_temperature);
+    Serial.print(getTemperatureInternal(), 2);
     Serial.print(" ");
-    Serial.println(s_temperatureLastReported);
+    Serial.print(getTemperature());
+    Serial.print(" ");
+    Serial.print(s_temperatureLastReported);
+    Serial.print(" ");
+    Serial.println(s_temp_correct);
 #endif
 
     bool reportTemperature = (abs(getTemperature() - s_temperatureLastReported) > s_temp_threshold);
@@ -60,6 +64,17 @@ bool reportTempUpdates(bool firstTime)
 
 bool reportHumUpdates(bool firstTime)
 {
+#if SERIAL_LOGS
+    Serial.print("Hum ");
+    Serial.print(getHumidityInternal(), 2);
+    Serial.print(" ");
+    Serial.print(getHumidity());
+    Serial.print(" ");
+    Serial.print(s_humidityLastReported);
+    Serial.print(" ");
+    Serial.println(s_hum_correct);
+#endif
+
     unsigned long curMillis = millis();
 
     bool reportHumidity = (abs(getHumidity() - s_humidityLastReported) > s_hum_threshold);

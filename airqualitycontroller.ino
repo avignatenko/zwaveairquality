@@ -115,6 +115,7 @@ void setup()
   setupTempHumSensor();
   setupTVOC();
   setupCO2();
+  setupLuxSensor();
 
   updateTempHumSensor();
   updateTVOC(true); // first time
@@ -135,6 +136,6 @@ void loop()
   reportUpdates();
 
   updateDisplay();
-  
+
   delay(2000);
 }

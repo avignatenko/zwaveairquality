@@ -6,6 +6,9 @@
 
 SHTSensor sht;
 
+const uint8_t sht_scl_pin = 10;
+const uint8_t sht_sda_pin = 11;
+
 float s_humidity = 0;
 float s_temperature = 0;
 
@@ -21,7 +24,7 @@ float getHumidityInternal()
 
 void setupTempHumSensor()
 {
-    Wire.begin();
+    Wire.begin(0, sht_scl_pin, sht_sda_pin);
 
     if (sht.init())
     {
@@ -35,7 +38,7 @@ void setupTempHumSensor()
         Serial.println("SHT init failed");
 #endif
     }
-    sht.setAccuracy(SHTSensor::SHT_ACCURACY_HIGH); // only supported by SHT3x
+    sht.setAccuracy(SHTSensor::SHT_ACCURACY_MEDIUM); // only supported by SHT3x
 }
 
 void updateTempHumSensor()
