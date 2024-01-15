@@ -3,16 +3,11 @@
 #include "common.h"
 
 #ifdef SENSIRION_DHT_SENSOR
-// returns temp (degrees Celcius) * 10 as two bytes
-word getTemperature();
-
-// returns humidity (percent) * 10 as two bytes
-word getHumidity();
+// returns temp (degrees Celcius) 
+float getTemperatureInternal();
+// returns humidity (percent) 
+float getHumidityInternal();
 
 void setupTempHumSensor();
 void updateTempHumSensor();
-void updateTempHumFromCFGParams();
-
-bool reportTempUpdates(bool firstTime = false);
-bool reportHumUpdates(bool firstTime = false);
 #endif
