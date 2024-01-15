@@ -89,8 +89,6 @@ void reportUpdates(bool firstTime = false)
   Serial.println("reportUpdates called");
 #endif
 
-  updateDisplay();
-
   if (reportTempUpdates(firstTime))
     return;
 
@@ -123,6 +121,8 @@ void setup()
   updateCO2(true);
 
   reportUpdates(true); // first time
+
+  updateDisplay();
 }
 
 void loop()
@@ -134,5 +134,7 @@ void loop()
 
   reportUpdates();
 
+  updateDisplay();
+  
   delay(2000);
 }
