@@ -134,11 +134,5 @@ void loop()
 
   reportUpdates();
 
-  uint16_t lux = getLuminance();
-#if SERIAL_LOGS
-  Serial.print("Lux: ");
-  Serial.println(lux);
-#endif
-
   delay(2000);
 }

@@ -162,6 +162,12 @@ void updateNightMode()
         return;
 
     const uint16_t luminance = getLuminance();
+
+#if SERIAL_LOGS
+    Serial.print("Lux: ");
+    Serial.println(luminance);
+#endif
+
     const uint16_t histLowerBound = s_night_mode_luminance - s_night_mode_luminance_hysteresis;
     const uint16_t histUpperBound = s_night_mode_luminance + s_night_mode_luminance_hysteresis;
 
