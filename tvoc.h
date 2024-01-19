@@ -19,7 +19,7 @@ public:
 
 
 protected:
-    void update();
+    void update() override;
 
 private:
     void updateInternal(bool firstTime = false);

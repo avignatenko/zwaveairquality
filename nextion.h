@@ -26,7 +26,7 @@ public:
     void setup();
 
 protected:
-    void update();
+    void update() override;
 
 private:
     bool isAutoNightMode() { return autoNightMode_; }

@@ -19,7 +19,7 @@ public:
     void setup();
 
 protected:
-    void update();
+    void update() override;
 
 private:
     bool reportTempUpdates(bool firstTime = false);
