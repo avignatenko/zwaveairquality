@@ -3,11 +3,11 @@
 #include "common.h"
 #include "tasks.h"
 
-#include "temphum.h"
-#include "tvoc.h"
 #include "co2.h"
 #include "lux.h"
 #include "pm25.h"
+#include "temphum.h"
+#include "tvoc.h"
 
 #include "EasyNextionLibrary.h"
 #include "HardwareSerial.h"
@@ -17,7 +17,8 @@ class TempHumTask;
 class DisplayTask : public Task
 {
 public:
-    DisplayTask(TempHumTask& tempHumTask, TVOCTask& tvocTask, CO2Task& co2Task, LuxTask& lux, PM25Task& pm25, HardwareSerial& serial);
+    DisplayTask(TempHumTask& tempHumTask, TVOCTask& tvocTask, CO2Task& co2Task, LuxTask& lux, PM25Task& pm25,
+                HardwareSerial& serial);
 
     byte getBrightness();
     void setBrightness(byte newValue);
