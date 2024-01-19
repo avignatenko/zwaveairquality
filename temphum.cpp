@@ -29,7 +29,7 @@ bool reportTempUpdates(bool firstTime)
     unsigned long curMillis = millis();
 
 #if SERIAL_LOGS
-    Serial.print("Temp ");
+    Serial.print("Temp: ");
     Serial.print(getTemperatureInternal(), 2);
     Serial.print(" ");
     Serial.print(getTemperature());
@@ -49,7 +49,7 @@ bool reportTempUpdates(bool firstTime)
         s_lastReportedTimeTemperature = curMillis;
 
 #if SERIAL_LOGS
-        Serial.print("Temp update sent, because: ");
+        Serial.print("Temp: update sent, because: ");
         Serial.print(reportTemperature);
         Serial.print(" ");
         Serial.print(timePassedTemperature);
@@ -65,7 +65,7 @@ bool reportTempUpdates(bool firstTime)
 bool reportHumUpdates(bool firstTime)
 {
 #if SERIAL_LOGS
-    Serial.print("Hum ");
+    Serial.print("Hum: ");
     Serial.print(getHumidityInternal(), 2);
     Serial.print(" ");
     Serial.print(getHumidity());
@@ -87,7 +87,7 @@ bool reportHumUpdates(bool firstTime)
         s_lastReportedTimeHumidity = curMillis;
 
 #if SERIAL_LOGS
-        Serial.print("Hum update sent, because: ");
+        Serial.print("Hum: update sent, because: ");
         Serial.print(reportHumidity);
         Serial.print(" ");
         Serial.print(timePassedHumidity);

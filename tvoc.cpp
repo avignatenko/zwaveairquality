@@ -23,7 +23,6 @@ byte getTVOCPercent()
     return getTVOC() * 10; // map [0 .. 10 ] -> [0 .. 100]
 }
 
-
 void updateTVOC(bool firstTime)
 {
     // wait for the next HIGH pulse
@@ -36,6 +35,12 @@ void updateTVOC(bool firstTime)
     }
 
     s_tvoc_level = (duration / 1000 + 10) / 10;
+
+#if SERIAL_LOGS
+    Serial.print("TVOC: raw ");
+    Serial.println(s_tvoc_level);
+#endif
+
     if (s_tvoc_level > 10)
         s_tvoc_level = 10;
 }
@@ -54,7 +59,7 @@ bool reportTVOCUpdates(bool firstTime)
         s_lastReportedTimeTVOC = curMillis;
 
 #if SERIAL_LOGS
-        Serial.print("TVOC update sent, because: ");
+        Serial.print("TVOC: update sent, because: ");
         Serial.print(reportTVOC);
         Serial.print(" ");
         Serial.print(timePassedTVOC);

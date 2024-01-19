@@ -4,7 +4,7 @@
 
 #include "ZUNO_DHT.h"
 
-#define PIN_DHT 03
+#define PIN_DHT 17
 
 // temp & humidity sensor (DHT22)
 DHT dht22_sensor(PIN_DHT, DHT22);

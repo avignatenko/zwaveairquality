@@ -17,7 +17,7 @@ uint16_t getLuminance()
     rawValue /= TOTAL_AVERAGE;
 
 #if SERIAL_LOGS
-    Serial.print("Lux raw value: ");
+    Serial.print("Lux: raw value: ");
     Serial.println(rawValue);
 #endif
 
@@ -26,6 +26,11 @@ uint16_t getLuminance()
     float amps = volts / 10000.0; // across 10,000 Ohms (series resistor)
     float microamps = amps * 1000000;
     float lux = microamps * 2.0;
+
+#if SERIAL_LOGS
+    Serial.print("Lux: ");
+    Serial.println((uint16_t)lux);
+#endif
 
     return (uint16_t)lux;
 }

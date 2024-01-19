@@ -87,7 +87,7 @@ void configParameterChanged2(byte param, uint32_t value)
 void reportUpdates(bool firstTime = false)
 {
 #if SERIAL_LOGS
-  Serial.println("reportUpdates called");
+  Serial.println("Main: reportUpdates started");
 #endif
 
   if (reportTempUpdates(firstTime))
@@ -101,6 +101,10 @@ void reportUpdates(bool firstTime = false)
 
   if (reportCO2Updates(firstTime))
     return;
+
+#if SERIAL_LOGS
+  Serial.println("Main: reportUpdates finished");
+#endif
 }
 
 void setup()

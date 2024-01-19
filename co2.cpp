@@ -60,7 +60,7 @@ void triggerCO2Calibration()
 {
 
 #if SERIAL_LOGS
-    Serial.println("Trigger calibration entered");
+    Serial.println("CO2: Trigger calibration entered");
 #endif
 
     if (s_inCalibration)
@@ -74,7 +74,7 @@ void triggerCO2Calibration()
     s_inCalibration = true;
 
 #if SERIAL_LOGS
-    Serial.println("Calibration started");
+    Serial.println("CO2: Calibration started");
 #endif
 }
 
@@ -87,14 +87,14 @@ bool updateCalibration()
     unsigned long delta = millis() - s_calibrationStartedTime;
 
 #if SERIAL_LOGS
-    Serial.print("Calibration update: ");
+    Serial.print("CO2: Calibration update: ");
     Serial.println(delta);
 #endif
 
     if (delta > CALIBRATION_TIME)
     {
 #if SERIAL_LOGS
-        Serial.print("Calibration finished ");
+        Serial.print("CO2: Calibration finished ");
 #endif
         // set hd pin to HIGH and stop timer
         digitalWrite(co2_hd_pin, HIGH);
@@ -121,7 +121,7 @@ bool updatePreheat()
     if (curPreheatDuration > PREHEAT_DURATION)
     {
 #if SERIAL_LOGS
-        Serial.println("Preheat finished");
+        Serial.println("CO2: Preheat finished");
 #endif
         s_preheat = false;
         s_preheatStartedTime = 0;
@@ -130,8 +130,8 @@ bool updatePreheat()
     }
 
 #if SERIAL_LOGS
-    Serial.println("No CO2 value, in preheat");
-    Serial.print("Preheat remaining: ");
+    Serial.println("CO2: No CO2 value, in preheat");
+    Serial.print("CO2: Preheat remaining: ");
     Serial.println(PREHEAT_DURATION - curPreheatDuration);
 #endif
 
@@ -224,7 +224,7 @@ void updateCO2(bool firstTime)
     if (reply != REPLY_OK)
     {
 #if SERIAL_LOGS
-        Serial.print("Error reading CO2: ");
+        Serial.print("CO2: Error reading CO2: ");
         Serial.print(reply);
         Serial.println();
 #endif
@@ -246,7 +246,7 @@ void enableAutoCalibration(bool enable)
     sendCommand(ENABLE_AUTO_CALIBRATION_COMMAND, enable ? 0xA0 : 0x00);
 
 #if SERIAL_LOGS
-    Serial.print("Sent auto calibration enable: ");
+    Serial.print("CO2: Sent auto calibration enable: ");
     Serial.print(enable);
     Serial.println();
 #endif
@@ -255,7 +255,7 @@ void enableAutoCalibration(bool enable)
 bool reportCO2Updates(bool firstTime)
 {
 #if SERIAL_LOGS
-    Serial.print("CO2 ");
+    Serial.print("CO2: ");
     Serial.print(s_co2);
     Serial.print(" ");
     Serial.println();
@@ -276,7 +276,7 @@ bool reportCO2Updates(bool firstTime)
         s_lastReportedTimeCO2 = curMillis;
 
 #if SERIAL_LOGS
-        Serial.print("CO2 update sent, because: ");
+        Serial.print("CO2: update sent, because: ");
         Serial.print(reportCO2);
         Serial.print(" ");
         Serial.print(timePassedCO2);

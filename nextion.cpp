@@ -76,7 +76,7 @@ void setDisplayNightMode(byte val)
     s_nightMode = val;
 
 #if SERIAL_LOGS
-    Serial.print("Updated display night node: ");
+    Serial.print("Nextion: Updated display night node: ");
     Serial.println(s_nightMode);
 #endif
 }
@@ -159,14 +159,14 @@ void updateCO2Display()
 void updateNightMode()
 {
     if (!isAutoNightMode())
-        return;
-
-    const uint16_t luminance = getLuminance();
-
+    {
 #if SERIAL_LOGS
-    Serial.print("Lux: ");
-    Serial.println(luminance);
+        Serial.println("Nextion: Auto night mode is off, skipping");
 #endif
+
+        return;
+    }
+    const uint16_t luminance = getLuminance();
 
     const uint16_t histLowerBound = s_night_mode_luminance - s_night_mode_luminance_hysteresis;
     const uint16_t histUpperBound = s_night_mode_luminance + s_night_mode_luminance_hysteresis;
@@ -188,7 +188,7 @@ void updateDisplayFromCFGParams()
         s_night_mode_luminance = s_night_mode_luminance_hysteresis;
 
 #if SERIAL_LOGS
-    Serial.print("Updated display params: ");
+    Serial.print("Nextion: Updated display params: ");
     Serial.print(s_auto_night_mode);
     Serial.print(" ");
     Serial.print(s_night_mode_luminance);
@@ -199,6 +199,10 @@ void updateDisplayFromCFGParams()
 
 void updateDisplay()
 {
+#if SERIAL_LOGS
+    Serial.println("Nextion: Update started");
+#endif
+
     updateNightMode();
     updateTemperatureDisplay();
     updateHumidityDisplay();

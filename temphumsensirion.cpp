@@ -29,13 +29,13 @@ void setupTempHumSensor()
     if (sht.init())
     {
 #if SERIAL_LOGS
-        Serial.println("SHT init success");
+        Serial.println("SHT: init success");
 #endif
     }
     else
     {
 #if SERIAL_LOGS
-        Serial.println("SHT init failed");
+        Serial.println("SHT: init failed");
 #endif
     }
     sht.setAccuracy(SHTSensor::SHT_ACCURACY_MEDIUM); // only supported by SHT3x
@@ -54,7 +54,7 @@ void updateTempHumSensor()
         s_temperature = -100;
 
 #if SERIAL_LOGS
-        Serial.println("SHT Read Error!");
+        Serial.println("SHT: Read Error!");
 #endif
     }
 }

@@ -63,13 +63,13 @@ void setQAMode()
 void setupPM25Sensor()
 {
   #if SERIAL_LOGS
-  Serial.println("PM2.5 setup start: ");
+  Serial.println("PM2.5: setup start: ");
 #endif
   //s_pm2_5_Serial.begin(9600);
 //  setQAMode();
 
 #if SERIAL_LOGS
-  Serial.println("PM2.5 setup end");
+  Serial.println("PM2.5: setup end");
 #endif
 }
 
