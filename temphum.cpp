@@ -1,36 +1,30 @@
 #include "temphum.h"
 
-word s_humidityLastReported = 0;
-unsigned long s_lastReportedTimeHumidity = 0;
-word s_hum_threshold = 5;
-word s_hum_correct = 0;
-
-word s_temperatureLastReported = 0;
-unsigned long s_lastReportedTimeTemperature = 0;
-word s_temp_threshold = 2;
-word s_temp_correct = 0;
-
-word s_temp_hum_interval = 60 * 20; // 20 mins default, min 30 seconds
+void TempHumTask::setup()
+{
+    sensor_.setup();
+    updateInternal(true);  // first time update
+}
 
 // returns temp (degrees Celcius) * 10 as two bytes
-word getTemperature()
+word TempHumTask::getTemperature()
 {
-    return round(getTemperatureInternal() * 10) + (s_temp_correct - 100);
+    return round(sensor_.getTemperatureInternal() * 10) + (s_temp_correct - 100);
 }
 
 // returns humidity (percent) * 10 as two bytes
-word getHumidity()
+word TempHumTask::getHumidity()
 {
-    return round(getHumidityInternal() * 10) + (s_hum_correct - 100);
+    return round(sensor_.getHumidityInternal() * 10) + (s_hum_correct - 100);
 }
 
-bool reportTempUpdates(bool firstTime)
+bool TempHumTask::reportTempUpdates(bool firstTime)
 {
     unsigned long curMillis = millis();
 
 #if SERIAL_LOGS
     Serial.print("Temp: ");
-    Serial.print(getTemperatureInternal(), 2);
+    Serial.print(sensor_.getTemperatureInternal(), 2);
     Serial.print(" ");
     Serial.print(getTemperature());
     Serial.print(" ");
@@ -40,7 +34,8 @@ bool reportTempUpdates(bool firstTime)
 #endif
 
     bool reportTemperature = (abs(getTemperature() - s_temperatureLastReported) > s_temp_threshold);
-    bool timePassedTemperature = (curMillis - s_lastReportedTimeTemperature > (unsigned long)s_temp_hum_interval * 1000);
+    bool timePassedTemperature =
+        (curMillis - s_lastReportedTimeTemperature > (unsigned long)s_temp_hum_interval * 1000);
 
     if (firstTime || reportTemperature || timePassedTemperature)
     {
@@ -62,11 +57,11 @@ bool reportTempUpdates(bool firstTime)
     return false;
 }
 
-bool reportHumUpdates(bool firstTime)
+bool TempHumTask::reportHumUpdates(bool firstTime)
 {
 #if SERIAL_LOGS
     Serial.print("Hum: ");
-    Serial.print(getHumidityInternal(), 2);
+    Serial.print(sensor_.getHumidityInternal(), 2);
     Serial.print(" ");
     Serial.print(getHumidity());
     Serial.print(" ");
@@ -100,11 +95,25 @@ bool reportHumUpdates(bool firstTime)
     return false;
 }
 
-void updateTempHumFromCFGParams()
+void TempHumTask::updateTempHumFromCFGParams()
 {
     s_temp_hum_interval = zunoLoadCFGParam(CONFIG_TEMPERATURE_HUMIDITY_INTERVAL_SEC);
     s_temp_threshold = zunoLoadCFGParam(CONFIG_TEMPERATURE_THRESHOLD_DEGREES);
     s_hum_threshold = zunoLoadCFGParam(CONFIG_HUMIDITY_THRESHOLD_PERCENT);
     s_temp_correct = zunoLoadCFGParam(CONFIG_TEMPERATURE_CORRECTION_DEGREES);
     s_hum_correct = zunoLoadCFGParam(CONFIG_HUMIDITY_CORRECTION_PERCENT);
+}
+
+void TempHumTask::updateInternal(bool firstTime)
+{
+    Serial.println("TempHum: update started");
+    sensor_.update();
+
+    reportTempUpdates(firstTime);
+    reportHumUpdates(firstTime);
+}
+
+void TempHumTask::update()
+{
+    updateInternal();
 }

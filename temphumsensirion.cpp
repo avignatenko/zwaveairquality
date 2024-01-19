@@ -1,32 +1,24 @@
 #include "temphumsensirion.h"
 
-#ifdef SENSIRION_DHT_SENSOR
 
-#include "SHTSensor.h"
-
-SHTSensor sht;
-
-const uint8_t sht_scl_pin = 10;
-const uint8_t sht_sda_pin = 11;
-
-float s_humidity = 0;
-float s_temperature = 0;
-
-float getTemperatureInternal()
+SensirionSensor::SensirionSensor(uint8_t sclPin, uint8_t sdaPin) 
 {
-    return s_temperature;
+    Wire.begin(0, sclPin, sdaPin);
 }
 
-float getHumidityInternal()
+float SensirionSensor::getTemperatureInternal()
 {
-    return s_humidity;
+    return temperature_;
 }
 
-void setupTempHumSensor()
+float SensirionSensor::getHumidityInternal()
 {
-    Wire.begin(0, sht_scl_pin, sht_sda_pin);
+    return humidity_;
+}
 
-    if (sht.init())
+void SensirionSensor::setup()
+{
+    if (sht_.init())
     {
 #if SERIAL_LOGS
         Serial.println("SHT: init success");
@@ -38,26 +30,23 @@ void setupTempHumSensor()
         Serial.println("SHT: init failed");
 #endif
     }
-    sht.setAccuracy(SHTSensor::SHT_ACCURACY_MEDIUM); // only supported by SHT3x
+    sht_.setAccuracy(SHTSensor::SHT_ACCURACY_MEDIUM);  // only supported by SHT3x
 }
 
-void updateTempHumSensor()
+void SensirionSensor::update()
 {
-    if (sht.readSample())
+    if (sht_.readSample())
     {
-        s_humidity = sht.getHumidity();
-        s_temperature = sht.getTemperature();
+        humidity_ = sht_.getHumidity();
+        temperature_ = sht_.getTemperature();
     }
     else
     {
-        s_humidity = -100;
-        s_temperature = -100;
+        humidity_ = -100;
+        temperature_ = -100;
 
 #if SERIAL_LOGS
         Serial.println("SHT: Read Error!");
 #endif
     }
 }
-
-
-#endif

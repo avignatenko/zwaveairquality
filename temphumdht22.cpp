@@ -1,48 +1,35 @@
 #include "temphumdht22.h"
 
-#ifdef DHT22_SENSOR
+DHT22Sensor::DHT22Sensor(uint8_t pin) : dht22_(pin, DHT22) {}
 
-#include "ZUNO_DHT.h"
-
-#define PIN_DHT 17
-
-// temp & humidity sensor (DHT22)
-DHT dht22_sensor(PIN_DHT, DHT22);
-
-float s_humidity = 0;
-float s_temperature = 0;
-
-float getTemperatureInternal()
+float DHT22Sensor::getTemperatureInternal()
 {
-    return s_temperature;
+    return temperature_;
 }
 
-float getHumidityInternal()
+float DHT22Sensor::getHumidityInternal()
 {
-    return s_humidity;
+    return humidity_;
 }
 
-void setupTempHumSensor()
+void DHT22Sensor::setup()
 {
-    dht22_sensor.begin();
+    dht22_.begin();
 }
 
-void updateTempHumSensor()
+void DHT22Sensor::update()
 {
     byte result;
-    result = dht22_sensor.read(true);
+    result = dht22_.read(true);
 
     if (result == ZunoErrorOk)
     {
-        s_humidity = dht22_sensor.readHumidity();
-        s_temperature = dht22_sensor.readTemperature() ;
+        humidity_ = dht22_.readHumidity();
+        temperature_ = dht22_.readTemperature();
     }
     else
     {
-
-        s_humidity = -100;
-        s_temperature = -100;
+        humidity_ = -100;
+        temperature_ = -100;
     }
 }
-
-#endif

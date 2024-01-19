@@ -2,14 +2,29 @@
 
 #include "common.h"
 
-#ifdef DHT22_SENSOR
-// returns temp (degrees Celcius)
-float getTemperatureInternal();
+#include "ZUNO_DHT.h"
 
-// returns humidity (percent) 
-float getHumidityInternal();
+#include "temphumsensor.h"
 
-void setupTempHumSensor();
-void updateTempHumSensor();
+class DHT22Sensor: public TempHumSensor
+{
+public:
+     
+    DHT22Sensor(uint8_t pin);
+    
+    // returns temp (degrees Celcius)
+    float getTemperatureInternal() override;
 
-#endif
+    // returns humidity (percent)
+    float getHumidityInternal() override;
+
+    void setup() override;
+    void update() override;
+
+private:
+
+    DHT dht22_;
+
+    float humidity_ = 0;
+    float temperature_ = 0;
+};

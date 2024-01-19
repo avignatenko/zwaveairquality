@@ -8,6 +8,8 @@
 #include "co2.h"
 #include "lux.h"
 
+TempHumTask* tempHum_ = nullptr;
+
 EasyNex s_display(Serial1); // Create an object of EasyNex class with the name < myNex >
                             // Set as parameter the Hardware Serial you are going to use
 
@@ -134,14 +136,14 @@ int co2ToSeverity(int co2)
 
 void updateTemperatureDisplay()
 {
-    s_display.writeNum("temp", getTemperature());
-    s_display.writeNum("temp_severity", temperatureToSeverity(getTemperature() / 10));
+    s_display.writeNum("temp", tempHum_->getTemperature());
+    s_display.writeNum("temp_severity", temperatureToSeverity(tempHum_->getTemperature() / 10));
 }
 
 void updateHumidityDisplay()
 {
-    s_display.writeNum("hum", getHumidity());
-    s_display.writeNum("hum_severity", humidityToSeverity(getHumidity() / 10));
+    s_display.writeNum("hum", tempHum_->getHumidity());
+    s_display.writeNum("hum_severity", humidityToSeverity(tempHum_->getHumidity() / 10));
 }
 
 void updateTVOCDisplay()
