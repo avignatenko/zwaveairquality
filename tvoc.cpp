@@ -1,6 +1,6 @@
 #include "tvoc.h"
 
-TVOCTask::TVOCTask(uint8_t pin) : pin_(pin) {}
+TVOCTask::TVOCTask(uint8_t pin) : Task(2000), pin_(pin) {}
 
 void TVOCTask::setup()
 {

@@ -1,5 +1,7 @@
 #include "temphum.h"
 
+TempHumTask::TempHumTask(TempHumSensor& sensor) : Task(2000), sensor_(sensor) {}
+
 void TempHumTask::setup()
 {
     sensor_.setup();
@@ -34,8 +36,7 @@ bool TempHumTask::reportTempUpdates(bool firstTime)
 #endif
 
     bool reportTemperature = (abs(getTemperature() - temperatureLastReported_) > tempThreshold_);
-    bool timePassedTemperature =
-        (curMillis - lastReportedTimeTemperature_ > (unsigned long)tempHumInterval_ * 1000);
+    bool timePassedTemperature = (curMillis - lastReportedTimeTemperature_ > (unsigned long)tempHumInterval_ * 1000);
 
     if (firstTime || reportTemperature || timePassedTemperature)
     {

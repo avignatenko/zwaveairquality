@@ -1,13 +1,13 @@
 #pragma once
 
-#include "tasks.h"
 #include "common.h"
+#include "tasks.h"
 #include "temphumsensor.h"
 
 class TempHumTask : public Task
 {
 public:
-    TempHumTask(TempHumSensor& sensor) : Task(2000), sensor_(sensor) {}
+    TempHumTask(TempHumSensor& sensor);
 
     // returns temp (degrees Celcius) * 10 as two bytes
     word getTemperature();
@@ -25,6 +25,7 @@ private:
     bool reportTempUpdates(bool firstTime = false);
     bool reportHumUpdates(bool firstTime = false);
     void updateInternal(bool firstTime = false);
+
 private:
     TempHumSensor& sensor_;
 
