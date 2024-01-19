@@ -1,9 +1,14 @@
 #include "nextion.h"
 
-
-
-DisplayTask::DisplayTask(TempHumTask& tempHumTask, TVOCTask& tvocTask, CO2Task& co2Task, LuxTask& lux, HardwareSerial& serial)
-    : Task(1000), tempHumTask_(tempHumTask), tvocTask_(tvocTask), co2Task_(co2Task), lux_(lux), display_(serial)
+DisplayTask::DisplayTask(TempHumTask& tempHumTask, TVOCTask& tvocTask, CO2Task& co2Task, LuxTask& lux, PM25Task& pm25,
+                         HardwareSerial& serial)
+    : Task(1000),
+      tempHumTask_(tempHumTask),
+      tvocTask_(tvocTask),
+      co2Task_(co2Task),
+      lux_(lux),
+      pm25_(pm25),
+      display_(serial)
 {
 }
 
@@ -107,6 +112,14 @@ int co2ToSeverity(int co2)
     return 4;
 }
 
+int pm25ToSeverity(int pm25)
+{
+    if (pm25 <= 30) return 1;
+    if (pm25 <= 50) return 2;
+    if (pm25 <= 100) return 3;
+    return 4;
+}
+
 void DisplayTask::updateTemperatureDisplay()
 {
     display_.writeNum("temp", tempHumTask_.getTemperature());
@@ -130,6 +143,13 @@ void DisplayTask::updateCO2Display()
     display_.writeNum("co2", co2Task_.getCO2());
     display_.writeNum("co2_severity", co2ToSeverity(co2Task_.getCO2()));
 }
+
+void DisplayTask::updatePM25Display()
+{
+    display_.writeNum("pm25", pm25_.getPM2_5());
+    display_.writeNum("pm25_severity", pm25ToSeverity(pm25_.getPM2_5()));
+}
+
 
 void DisplayTask::updateNightMode()
 {
@@ -181,4 +201,5 @@ void DisplayTask::update()
     updateHumidityDisplay();
     updateTVOCDisplay();
     updateCO2Display();
+    updatePM25Display();
 }

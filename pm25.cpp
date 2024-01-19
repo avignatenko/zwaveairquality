@@ -1,6 +1,6 @@
 #include "pm25.h"
 
-#include "Arduino.h"
+PM25Task::PM25Task(HardwareSerial& serial) : Task(2000), serial_(serial) {}
 
 #if 0
 uint8_t PM25_TX = 12;
@@ -59,22 +59,29 @@ void setQAMode()
   for (int i = 0; i < 9; ++i) s_pm2_5_Serial.write(buffer[i]);
 }
 
-#endif 
-void setupPM25Sensor()
-{
-  #if SERIAL_LOGS
-  Serial.println("PM2.5: setup start: ");
 #endif
-  //s_pm2_5_Serial.begin(9600);
-//  setQAMode();
+void PM25Task::setup()
+{
+#if SERIAL_LOGS
+    Serial.println("PM2.5: setup start: ");
+#endif
+    // s_pm2_5_Serial.begin(9600);
+    //  setQAMode();
 
 #if SERIAL_LOGS
-  Serial.println("PM2.5: setup end");
+    Serial.println("PM2.5: setup end");
 #endif
 }
-
-void updatePM25(bool firstTime)
+uint16_t PM25Task::getPM2_5()
 {
- // requestData();
- // receiveData();
+    return pm2_5_;
+}
+
+void PM25Task::update()
+{
+    pm2_5_ += 1;
+    if (pm2_5_ > 100) pm2_5_ = 0;
+
+    // requestData();
+    // receiveData();
 }

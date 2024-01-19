@@ -7,12 +7,9 @@
 #include "pm25.h"
 #include "temphum.h"
 #include "tvoc.h"
-#include "lux.h"
 
 #include "Tasks.h"
 #include "common.h"
-
-word s_pm25 = 5;  // ppm
 
 #define ZUNO_SENSOR_MULTILEVEL_TEMPERATURE_2(GETTER)                                                 \
     ZUNO_SENSOR_MULTILEVEL(ZUNO_SENSOR_MULTILEVEL_TYPE_TEMPERATURE, SENSOR_MULTILEVEL_SCALE_CELSIUS, \
@@ -57,8 +54,9 @@ TempHumTask tempHumTask(sensor);
 TVOCTask tvocTask(9);
 CO2Task co2Task(Serial0, 6);
 LuxTask luxTask(A1);
+PM25Task pm25Task(Serial0);  // !!!!! which serial
 
-DisplayTask displayTask(tempHumTask, tvocTask, co2Task, luxTask, Serial1);
+DisplayTask displayTask(tempHumTask, tvocTask, co2Task, luxTask, pm25Task, Serial1);
 
 // need to use this due to ZUNO preprocessor behaviour
 
@@ -88,10 +86,16 @@ byte getTVOCPercent1()
     return tvocTask.getPercent();
 }
 
+byte getPM2_5()
+{
+    return pm25Task.getPM2_5();
+}
+
 byte getDisplayNightMode1()
 {
     return displayTask.getNightMode();
 }
+
 void setNightMode1(byte newValue)
 {
     displayTask.setNightMode(newValue);
@@ -102,7 +106,7 @@ ZUNO_SETUP_CHANNELS(ZUNO_SWITCH_MULTILEVEL(getDisplayBrightness1, setDisplayBrig
                     ZUNO_SENSOR_MULTILEVEL_TEMPERATURE_2(getTemperature1),
                     ZUNO_SENSOR_MULTILEVEL_HUMIDITY_2(getHumidity1), ZUNO_SENSOR_MULTILEVEL_CO2_LEVEL_2(getCO21),
                     ZUNO_SENSOR_MULTILEVEL_GP_VOC_PERCENT(getTVOCPercent1),
-                    ZUNO_SENSOR_MULTILEVEL_GP_PM2_5_LEVEL(s_pm25));
+                    ZUNO_SENSOR_MULTILEVEL_GP_PM2_5_LEVEL(getPM2_5));
 
 ZUNO_SETUP_CONFIGPARAMETERS(ZUNO_CONFIG_PARAMETER("Temperature and humidity update period (sec)", 30, 86400, 1800),
                             ZUNO_CONFIG_PARAMETER_1B("Temperature update threshold", 1, 255, 2),
@@ -142,15 +146,7 @@ void setup()
     tvocTask.setup();
     co2Task.setup();
     luxTask.setup();
-
-    setupPM25Sensor();
-    updatePM25(true);
-
+    pm25Task.setup();
 }
 
-void loop()
-{
-    updatePM25();
-
-    delay(2000);
-}
+void loop() {}
