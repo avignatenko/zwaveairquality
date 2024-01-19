@@ -149,4 +149,7 @@ void setup()
     pm25Task.setup();
 }
 
-void loop() {}
+void loop()
+{
+    TaskManager.update();
+}

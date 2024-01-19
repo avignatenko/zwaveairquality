@@ -88,7 +88,3 @@ public:
     static void create(void (*callback)());
 };
 
-extern void _loop();
-#ifndef _TASKS_INTERNAL
-#define loop _loop
-#endif

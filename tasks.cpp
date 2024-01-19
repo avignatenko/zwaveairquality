@@ -61,9 +61,3 @@ void CallTask::create (void (*callback)()) {
     if (callback != nullptr)
         new CallTask(callback);
 }
-
-void loop ()
-{
-    TaskManager.update();
-    _loop();
-}
