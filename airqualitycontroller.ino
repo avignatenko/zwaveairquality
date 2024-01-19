@@ -50,13 +50,14 @@ SensirionSensor sensor(SHT_SCL_PIN, SHT_SDA_PIN);
 
 #include "temphumdht22.h"
 
-#define PIN_DHT 17
-DHT22Sensor sensor(PIN_DHT);
+DHT22Sensor sensor(17);
 
 #endif
 
 TempHumTask tempHumTask(sensor);
-DisplayTask displayTask(tempHumTask, Serial1);
+TVOCTask tvocTask(9);
+
+DisplayTask displayTask(tempHumTask, tvocTask, Serial1);
 
 // need to use this due to ZUNO preprocessor behaviour
 
@@ -83,7 +84,7 @@ word getCO21()
 }
 byte getTVOCPercent1()
 {
-    return getTVOCPercent();
+    return tvocTask.getPercent();
 }
 
 byte getDisplayNightMode1()
@@ -138,8 +139,6 @@ void reportUpdates(bool firstTime = false)
     Serial.println("Main: reportUpdates started");
 #endif
 
-    if (reportTVOCUpdates(firstTime)) return;
-
     if (reportCO2Updates(firstTime)) return;
 
 #if SERIAL_LOGS
@@ -157,22 +156,20 @@ void setup()
 
     tempHumTask.setup();
     displayTask.setup();
-    setupTVOC();
+    tvocTask.setup();
+
     setupCO2();
     setupLuxSensor();
     setupPM25Sensor();
 
-    updateTVOC(true);  // first time
     updateCO2(true);
     updatePM25(true);
 
     reportUpdates(true);  // first time
-
 }
 
 void loop()
 {
-    updateTVOC();
     updateCO2();
     updatePM25();
     reportUpdates();

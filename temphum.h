@@ -28,15 +28,15 @@ private:
 private:
     TempHumSensor& sensor_;
 
-    word s_humidityLastReported = 0;
-    unsigned long s_lastReportedTimeHumidity = 0;
-    word s_hum_threshold = 5;
-    word s_hum_correct = 0;
+    word humidityLastReported_ = 0;
+    unsigned long lastReportedTimeHumidity_ = 0;
+    word humThreshold_ = 5;
+    word humCorrect_ = 0;
 
-    word s_temperatureLastReported = 0;
-    unsigned long s_lastReportedTimeTemperature = 0;
-    word s_temp_threshold = 2;
-    word s_temp_correct = 0;
+    word temperatureLastReported_ = 0;
+    unsigned long lastReportedTimeTemperature_ = 0;
+    word tempThreshold_ = 2;
+    word tempCorrect_ = 0;
 
-    word s_temp_hum_interval = 60 * 20;  // 20 mins default, min 30 seconds
+    word tempHumInterval_ = 60 * 20;  // 20 mins default, min 30 seconds
 };

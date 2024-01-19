@@ -5,20 +5,20 @@
 #include "temphum.h"
 #include "tvoc.h"
 
-DisplayTask::DisplayTask(TempHumTask& tempHumTask, HardwareSerial& serial)
-    : Task(1000), tempHumTask_(tempHumTask), display_(serial)
+DisplayTask::DisplayTask(TempHumTask& tempHumTask, TVOCTask& tvocTask, HardwareSerial& serial)
+    : Task(1000), tempHumTask_(tempHumTask), tvocTask_(tvocTask), display_(serial)
 {
 }
 
 byte DisplayTask::getBrightness()
 {
-    return s_displayBrightness;
+    return displayBrightness_;
 }
 
 void DisplayTask::setBrightness(byte newValue)
 {
-    s_displayBrightness = newValue;
-    display_.writeNum("dim", s_displayBrightness);
+    displayBrightness_ = newValue;
+    display_.writeNum("dim", displayBrightness_);
 }
 
 void DisplayTask::setDayMode()
@@ -53,21 +53,21 @@ void DisplayTask::setNightMode()
 
 byte DisplayTask::getNightMode()
 {
-    return s_nightMode;
+    return nightMode_;
 }
 void DisplayTask::setNightMode(byte val)
 {
-    if (s_nightMode == val) return;  // no change
+    if (nightMode_ == val) return;  // no change
 
     if (val)
         setNightMode();
     else
         setDayMode();
-    s_nightMode = val;
+    nightMode_ = val;
 
 #if SERIAL_LOGS
     Serial.print("Nextion: Updated display night node: ");
-    Serial.println(s_nightMode);
+    Serial.println(nightMode_);
 #endif
 }
 
@@ -124,8 +124,8 @@ void DisplayTask::updateHumidityDisplay()
 
 void DisplayTask::updateTVOCDisplay()
 {
-    display_.writeNum("tvoc", getTVOC());
-    display_.writeNum("tvoc_severity", tvocToSeverity(getTVOC()));
+    display_.writeNum("tvoc", tvocTask_.get());
+    display_.writeNum("tvoc_severity", tvocToSeverity(tvocTask_.get()));
 }
 
 void DisplayTask::updateCO2Display()
@@ -146,8 +146,8 @@ void DisplayTask::updateNightMode()
     }
     const uint16_t luminance = getLuminance();
 
-    const uint16_t histLowerBound = s_night_mode_luminance - s_night_mode_luminance_hysteresis;
-    const uint16_t histUpperBound = s_night_mode_luminance + s_night_mode_luminance_hysteresis;
+    const uint16_t histLowerBound = nightModeLuminance_ - nightModeLuminanceHysteresis;
+    const uint16_t histUpperBound = nightModeLuminance_ + nightModeLuminanceHysteresis;
 
     if (luminance > histLowerBound && luminance < histUpperBound) return;  // no change, hysteresis in effect
 
@@ -157,20 +157,19 @@ void DisplayTask::updateNightMode()
 
 void DisplayTask::updateFromCFGParams()
 {
-    s_auto_night_mode = zunoLoadCFGParam(CONFIG_AUTO_NIGHT_MODE);
-    s_night_mode_luminance = zunoLoadCFGParam(CONFIG_NIGHT_MODE_LUMINANCE);
-    s_night_mode_luminance_hysteresis = zunoLoadCFGParam(CONFIG_NIGHT_MODE_HYSTERESIS);
+    autoNightMode_ = zunoLoadCFGParam(CONFIG_AUTO_NIGHT_MODE);
+    nightModeLuminance_ = zunoLoadCFGParam(CONFIG_NIGHT_MODE_LUMINANCE);
+    nightModeLuminanceHysteresis = zunoLoadCFGParam(CONFIG_NIGHT_MODE_HYSTERESIS);
 
-    if (s_night_mode_luminance < s_night_mode_luminance_hysteresis)
-        s_night_mode_luminance = s_night_mode_luminance_hysteresis;
+    if (nightModeLuminance_ < nightModeLuminanceHysteresis) nightModeLuminance_ = nightModeLuminanceHysteresis;
 
 #if SERIAL_LOGS
     Serial.print("Nextion: Updated display params: ");
-    Serial.print(s_auto_night_mode);
+    Serial.print(autoNightMode_);
     Serial.print(" ");
-    Serial.print(s_night_mode_luminance);
+    Serial.print(nightModeLuminance_);
     Serial.print(" ");
-    Serial.println(s_night_mode_luminance_hysteresis);
+    Serial.println(nightModeLuminanceHysteresis);
 #endif
 }
 

@@ -1,62 +1,57 @@
 #include "tvoc.h"
 
-s_pin TVOC_A_PIN = 9;
+TVOCTask::TVOCTask(uint8_t pin) : pin_(pin) {}
 
-byte s_tvoc_level = 0;
-word s_tvocLastReported = 0;
-word s_tvoc_interval = 60 * 20; // 20 mins default, min 30 seconds
-word s_tvoc_threshold = 0;
-unsigned long s_lastReportedTimeTVOC = 0;
-
-void setupTVOC()
+void TVOCTask::setup()
 {
-    pinMode(TVOC_A_PIN, INPUT);
+    pinMode(pin_, INPUT);
+
+    updateInternal(true);
 }
 
-byte getTVOC()
+byte TVOCTask::get()
 {
-    return s_tvoc_level;
+    return tvocLevel_;
 }
 
-byte getTVOCPercent()
+byte TVOCTask::getPercent()
 {
-    return getTVOC() * 10; // map [0 .. 10 ] -> [0 .. 100]
+    return get() * 10;  // map [0 .. 10 ] -> [0 .. 100]
 }
 
-void updateTVOC(bool firstTime)
+void TVOCTask::updateTVOC(bool firstTime)
 {
     // wait for the next HIGH pulse
-    DWORD duration = pulseIn(TVOC_A_PIN, HIGH, 200000); // wait for 200 ms
-    if (duration == 0)                                  // no changes, just read the pin
+    DWORD duration = pulseIn(pin_, HIGH, 200000);  // wait for 200 ms
+    if (duration == 0)                             // no changes, just read the pin
     {
-        byte level = digitalRead(TVOC_A_PIN);
-        s_tvoc_level = (level > 0 ? 10 : 0);
+        byte level = digitalRead(pin_);
+        tvocLevel_ = (level > 0 ? 10 : 0);
         return;
     }
 
-    s_tvoc_level = (duration / 1000 + 10) / 10;
+    tvocLevel_ = (duration / 1000 + 10) / 10;
 
 #if SERIAL_LOGS
     Serial.print("TVOC: raw ");
-    Serial.println(s_tvoc_level);
+    Serial.println(tvocLevel_);
 #endif
 
-    if (s_tvoc_level > 10)
-        s_tvoc_level = 10;
+    if (tvocLevel_ > 10) tvocLevel_ = 10;
 }
 
-bool reportTVOCUpdates(bool firstTime)
+bool TVOCTask::reportTVOCUpdates(bool firstTime)
 {
     unsigned long curMillis = millis();
 
-    bool reportTVOC = (abs(s_tvoc_level - s_tvocLastReported) > s_tvoc_threshold);
-    bool timePassedTVOC = (curMillis - s_lastReportedTimeTVOC > (unsigned long)s_tvoc_interval * 1000);
+    bool reportTVOC = (abs(tvocLevel_ - tvocLastReported_) > tvocThreshold_);
+    bool timePassedTVOC = (curMillis - lastReportedTimeTVOC_ > (unsigned long)tvocInterval_ * 1000);
 
     if (firstTime || reportTVOC || timePassedTVOC)
     {
         zunoSendReport(CHANNEL_TVOC);
-        s_tvocLastReported = s_tvoc_level;
-        s_lastReportedTimeTVOC = curMillis;
+        tvocLastReported_ = tvocLevel_;
+        lastReportedTimeTVOC_ = curMillis;
 
 #if SERIAL_LOGS
         Serial.print("TVOC: update sent, because: ");
@@ -70,4 +65,15 @@ bool reportTVOCUpdates(bool firstTime)
     }
 
     return false;
+}
+
+void TVOCTask::updateInternal(bool firstTime)
+{
+    updateTVOC(firstTime);
+    reportTVOCUpdates(firstTime);
+}
+
+void TVOCTask::update()
+{
+    updateInternal();
 }

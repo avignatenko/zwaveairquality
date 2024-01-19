@@ -4,6 +4,7 @@
 #include "tasks.h"
 
 #include "temphum.h"
+#include "tvoc.h"
 
 #include "EasyNextionLibrary.h"
 #include "HardwareSerial.h"
@@ -13,7 +14,7 @@ class TempHumTask;
 class DisplayTask : public Task
 {
 public:
-    DisplayTask(TempHumTask& tempHumTask, HardwareSerial& serial);
+    DisplayTask(TempHumTask& tempHumTask, TVOCTask& tvocTask, HardwareSerial& serial);
 
     byte getBrightness();
     void setBrightness(byte newValue);
@@ -27,8 +28,8 @@ protected:
     void update();
 
 private:
-    bool isAutoNightMode() { return s_auto_night_mode; }
-    uint16_t getNightModeLuminance() { return s_night_mode_luminance; }
+    bool isAutoNightMode() { return autoNightMode_; }
+    uint16_t getNightModeLuminance() { return nightModeLuminance_; }
 
     void setDayMode();
     void setNightMode();
@@ -38,16 +39,19 @@ private:
     void updateTVOCDisplay();
     void updateCO2Display();
     void updateNightMode();
+
 private:
     TempHumTask& tempHumTask_;
+    TVOCTask& tvocTask_;
+
     EasyNex display_;
 
-    byte s_displayBrightness = 100;
-    bool s_nightMode = false;
+    byte displayBrightness_ = 100;
+    bool nightMode_ = false;
 
-    bool s_auto_night_mode = false;
-    uint16_t s_night_mode_luminance = 0;
-    uint16_t s_night_mode_luminance_hysteresis =
-        5;  // day mode if lum >= s_night_mode_luminance + s_night_mode_luminance_hysteresis
-            // night mode if lum <= s_night_mode_luminance - s_night_mode_luminance_hysteresis
+    bool autoNightMode_ = false;
+    uint16_t nightModeLuminance_ = 0;
+    uint16_t nightModeLuminanceHysteresis =
+        5;  // day mode if lum >= nightModeLuminance_ + nightModeLuminanceHysteresis
+            // night mode if lum <= nightModeLuminance_ - nightModeLuminanceHysteresis
 };
