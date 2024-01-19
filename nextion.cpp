@@ -1,12 +1,9 @@
 #include "nextion.h"
 
-#include "co2.h"
 #include "lux.h"
-#include "temphum.h"
-#include "tvoc.h"
 
-DisplayTask::DisplayTask(TempHumTask& tempHumTask, TVOCTask& tvocTask, HardwareSerial& serial)
-    : Task(1000), tempHumTask_(tempHumTask), tvocTask_(tvocTask), display_(serial)
+DisplayTask::DisplayTask(TempHumTask& tempHumTask, TVOCTask& tvocTask, CO2Task& co2Task, HardwareSerial& serial)
+    : Task(1000), tempHumTask_(tempHumTask), tvocTask_(tvocTask), co2Task_(co2Task), display_(serial)
 {
 }
 
@@ -130,8 +127,8 @@ void DisplayTask::updateTVOCDisplay()
 
 void DisplayTask::updateCO2Display()
 {
-    display_.writeNum("co2", getCO2());
-    display_.writeNum("co2_severity", co2ToSeverity(getCO2()));
+    display_.writeNum("co2", co2Task_.getCO2());
+    display_.writeNum("co2_severity", co2ToSeverity(co2Task_.getCO2()));
 }
 
 void DisplayTask::updateNightMode()

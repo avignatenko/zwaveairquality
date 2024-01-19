@@ -41,7 +41,6 @@ ZUNO_ENABLE(MODERN_MULTICHANNEL  // No clusters, the first channel is mapped to 
 #if defined SENSIRION_DHT_SENSOR
 
 #include "temphumsensirion.h"
-
 const uint8_t SHT_SCL_PIN = 10;
 const uint8_t SHT_SDA_PIN = 11;
 SensirionSensor sensor(SHT_SCL_PIN, SHT_SDA_PIN);
@@ -49,15 +48,15 @@ SensirionSensor sensor(SHT_SCL_PIN, SHT_SDA_PIN);
 #elif defined DHT22_SENSOR
 
 #include "temphumdht22.h"
-
 DHT22Sensor sensor(17);
 
 #endif
 
 TempHumTask tempHumTask(sensor);
 TVOCTask tvocTask(9);
+CO2Task co2Task(Serial0, 6);
 
-DisplayTask displayTask(tempHumTask, tvocTask, Serial1);
+DisplayTask displayTask(tempHumTask, tvocTask, co2Task, Serial1);
 
 // need to use this due to ZUNO preprocessor behaviour
 
@@ -80,7 +79,7 @@ word getHumidity1()
 }
 word getCO21()
 {
-    return getCO2();
+    return co2Task.getCO2();
 }
 byte getTVOCPercent1()
 {
@@ -119,31 +118,13 @@ void updateFromCFGParams()
 {
     tempHumTask.updateTempHumFromCFGParams();
     displayTask.updateFromCFGParams();
+    co2Task.updateFromCFGParams();
 }
 
 void configParameterChanged2(byte param, uint32_t value)
 {
-    if (param == CONFIG_CO2_START_CALIBRATION && value == 1)
-    {
-        triggerCO2Calibration();
-        return;
-    }
-
     zunoSaveCFGParam(param, value);
     updateFromCFGParams();
-}
-
-void reportUpdates(bool firstTime = false)
-{
-#if SERIAL_LOGS
-    Serial.println("Main: reportUpdates started");
-#endif
-
-    if (reportCO2Updates(firstTime)) return;
-
-#if SERIAL_LOGS
-    Serial.println("Main: reportUpdates finished");
-#endif
 }
 
 void setup()
@@ -157,22 +138,18 @@ void setup()
     tempHumTask.setup();
     displayTask.setup();
     tvocTask.setup();
+    co2Task.setup();
 
-    setupCO2();
     setupLuxSensor();
-    setupPM25Sensor();
 
-    updateCO2(true);
+    setupPM25Sensor();
     updatePM25(true);
 
-    reportUpdates(true);  // first time
 }
 
 void loop()
 {
-    updateCO2();
     updatePM25();
-    reportUpdates();
 
     delay(2000);
 }

@@ -1,77 +1,66 @@
 
 #include "co2.h"
 
-#include "HardwareSerial.h"
+CO2Task::CO2Task(HardwareSerial& serial, uint8_t pinHd) : Task(2000), serial_(serial), pinHd_(pinHd) {}
 
-const byte co2_hd_pin = 6;
-
-const int PREHEAT_DURATION = 90 * 1000; // 1.5 min
-const int CALIBRATION_TIME = 8 * 1000;  // 8 seconds
-
-bool s_preheat = false;
-dword s_preheatStartedTime = 0;
-
-bool s_inCalibration = false;
-dword s_calibrationStartedTime = 0;
-
-word s_co2 = 0; // ppm
-
-word s_co2LastReported = 0;
-word s_co2_interval = 60 * 20; // 20 mins default, min 30 seconds
-word s_co2_threshold = 50;
-unsigned long s_lastReportedTimeCO2 = 0;
-
-HardwareSerial &s_co2_serial = Serial0;
-
-word getCO2()
+word CO2Task::getCO2()
 {
-    return s_co2;
+    return co2_;
 }
 
-void setupCO2()
+void CO2Task::updateFromCFGParams()
 {
-    s_co2_serial.begin(9600);
+    int value = zunoLoadCFGParam(CONFIG_CO2_START_CALIBRATION);
+    if (value == 1 && !inCalibration_)
+    {
+        triggerCalibration();
+        zunoSaveCFGParam(CONFIG_CO2_START_CALIBRATION, 0);
+    }
+}
+
+void CO2Task::setup()
+{
+    serial_.begin(9600);
 
     // set hd pin
-    pinMode(co2_hd_pin, OUTPUT);
-    digitalWrite(co2_hd_pin, HIGH);
+    pinMode(pinHd_, OUTPUT);
+    digitalWrite(pinHd_, HIGH);
 
     // enable pre-heat
-    s_preheat = true;
-    s_preheatStartedTime = millis();
+    preheat_ = true;
+    preheatStartedTime_ = millis();
 
     // disable auto-calibration (todo: move to properties)
     enableAutoCalibration(false);
+
+    updateInternal(true);
 }
 
-char getCheckSum(uint8_t *packet)
+char getCheckSum(uint8_t* packet)
 {
     uint8_t checksum = 0;
 
-    for (uint8_t i = 1; i < 8; i++)
-        checksum += packet[i];
+    for (uint8_t i = 1; i < 8; i++) checksum += packet[i];
 
     checksum = 0xff - checksum;
     checksum = checksum + 1;
     return checksum;
 }
 
-void triggerCO2Calibration()
+void CO2Task::triggerCalibration()
 {
-
 #if SERIAL_LOGS
     Serial.println("CO2: Trigger calibration entered");
 #endif
 
-    if (s_inCalibration)
-        return;
+    if (inCalibration_) return;
 
     // set hd pin to LOW and start time
-    digitalWrite(co2_hd_pin, LOW);
+    digitalWrite(pinHd_, LOW);
 
-    s_calibrationStartedTime = millis();
+    calibrationStartedTime_ = millis();
 
-    s_inCalibration = true;
+    inCalibration_ = true;
 
 #if SERIAL_LOGS
     Serial.println("CO2: Calibration started");
@@ -79,12 +68,11 @@ void triggerCO2Calibration()
 }
 
 // returns true if still in calibration mode
-bool updateCalibration()
+bool CO2Task::updateCalibration()
 {
-    if (!s_inCalibration)
-        return false;
+    if (!inCalibration_) return false;
 
-    unsigned long delta = millis() - s_calibrationStartedTime;
+    unsigned long delta = millis() - calibrationStartedTime_;
 
 #if SERIAL_LOGS
     Serial.print("CO2: Calibration update: ");
@@ -97,12 +85,9 @@ bool updateCalibration()
         Serial.print("CO2: Calibration finished ");
 #endif
         // set hd pin to HIGH and stop timer
-        digitalWrite(co2_hd_pin, HIGH);
-        s_inCalibration = false;
-        s_calibrationStartedTime = 0;
-
-        // fixme: move out of there to main code
-        zunoSaveCFGParam(CONFIG_CO2_START_CALIBRATION, 0);
+        digitalWrite(pinHd_, HIGH);
+        inCalibration_ = false;
+        calibrationStartedTime_ = 0;
 
         return false;
     }
@@ -111,20 +96,19 @@ bool updateCalibration()
 }
 
 // returns true if still in pre-heat
-bool updatePreheat()
+bool CO2Task::updatePreheat()
 {
-    if (!s_preheat)
-        return false;
+    if (!preheat_) return false;
 
-    dword curPreheatDuration = millis() - s_preheatStartedTime;
+    dword curPreheatDuration = millis() - preheatStartedTime_;
 
     if (curPreheatDuration > PREHEAT_DURATION)
     {
 #if SERIAL_LOGS
         Serial.println("CO2: Preheat finished");
 #endif
-        s_preheat = false;
-        s_preheatStartedTime = 0;
+        preheat_ = false;
+        preheatStartedTime_ = 0;
 
         return false;
     }
@@ -135,44 +119,31 @@ bool updatePreheat()
     Serial.println(PREHEAT_DURATION - curPreheatDuration);
 #endif
 
-    return true; // still in pre-heat
+    return true;  // still in pre-heat
 }
 
-void sendCommand(uint8_t command, uint8_t arg = 0x00)
+void CO2Task::sendCommand(uint8_t command, uint8_t arg)
 {
     // read everything which might stay there
-    while (s_co2_serial.available())
-        s_co2_serial.read();
+    while (serial_.available()) serial_.read();
 
     // send data request
     uint8_t bufferOut[9] = {0xFF, 0x01, command, arg, 0x00, 0x00, 0x00, 0x00, 0x00};
     bufferOut[8] = getCheckSum(bufferOut);
-    s_co2_serial.write(bufferOut, 9);
+    serial_.write(bufferOut, 9);
 }
 
-enum Reply
+CO2Task::Reply CO2Task::readReply(uint8_t command, uint8_t bufferOut[6])
 {
-    REPLY_OK = 0,
-    REPLY_NO_ANSWER,
-    REPLY_WRONG_LENGTH,
-    REPLY_WRONG_ID,
-    REPLY_WRONG_CHECKSUM
-};
-
-Reply readReply(uint8_t command, uint8_t bufferOut[6])
-{
-
     // read co2 concentraction reply
     uint8_t bufferIn[9];
-    byte read = s_co2_serial.readBytes(bufferIn, 9);
-    if (read == 0)
-        return REPLY_NO_ANSWER;
+    byte read = serial_.readBytes(bufferIn, 9);
+    if (read == 0) return REPLY_NO_ANSWER;
 
     if (read != 9)
     {
         // read everything else
-        while (s_co2_serial.available())
-            s_co2_serial.read();
+        while (serial_.available()) serial_.read();
 
         return REPLY_WRONG_LENGTH;
     }
@@ -183,25 +154,23 @@ Reply readReply(uint8_t command, uint8_t bufferOut[6])
     ok = ok && (bufferIn[0] == 0xFF);
     ok = ok && (bufferIn[1] == command);
 
-    if (!ok)
-        return REPLY_WRONG_ID;
+    if (!ok) return REPLY_WRONG_ID;
 
     ok = ok && (getCheckSum(bufferIn) == bufferIn[8]);
 
-    if (!ok)
-        return REPLY_WRONG_CHECKSUM;
+    if (!ok) return REPLY_WRONG_CHECKSUM;
 
     memcpy(bufferOut, bufferIn + 2, 6);
 
     return REPLY_OK;
 }
 
-void updateCO2(bool firstTime)
+void CO2Task::update(bool firstTime)
 {
     // return if still in pre-heat
     if (updatePreheat())
     {
-        s_co2 = 0;
+        co2_ = 0;
         return;
     }
 
@@ -228,7 +197,7 @@ void updateCO2(bool firstTime)
         Serial.print(reply);
         Serial.println();
 #endif
-        s_co2 = (word)reply;
+        co2_ = (word)reply;
         return;
     }
 
@@ -237,10 +206,10 @@ void updateCO2(bool firstTime)
 
     word value = (word)c1 * 256 + (word)c2;
 
-    s_co2 = value;
+    co2_ = value;
 }
 
-void enableAutoCalibration(bool enable)
+void CO2Task::enableAutoCalibration(bool enable)
 {
     const uint8_t ENABLE_AUTO_CALIBRATION_COMMAND = 0x79;
     sendCommand(ENABLE_AUTO_CALIBRATION_COMMAND, enable ? 0xA0 : 0x00);
@@ -252,28 +221,27 @@ void enableAutoCalibration(bool enable)
 #endif
 }
 
-bool reportCO2Updates(bool firstTime)
+bool CO2Task::reportUpdates(bool firstTime)
 {
 #if SERIAL_LOGS
     Serial.print("CO2: ");
-    Serial.print(s_co2);
+    Serial.print(co2_);
     Serial.print(" ");
     Serial.println();
 #endif
 
-    if (s_co2 <= 100)
-        return false; // wrong value, let's skip it
+    if (co2_ <= 100) return false;  // wrong value, let's skip it
 
     unsigned long curMillis = millis();
 
-    bool reportCO2 = (abs(s_co2 - s_co2LastReported) > s_co2_threshold);
-    bool timePassedCO2 = (curMillis - s_lastReportedTimeCO2 > (unsigned long)s_co2_interval * 1000);
+    bool reportCO2 = (abs(co2_ - co2LastReported_) > co2Threshold_);
+    bool timePassedCO2 = (curMillis - lastReportedTimeCO2_ > (unsigned long)co2Interval_ * 1000);
 
     if (firstTime || reportCO2 || timePassedCO2)
     {
         zunoSendReport(CHANNEL_CO2);
-        s_co2LastReported = s_co2;
-        s_lastReportedTimeCO2 = curMillis;
+        co2LastReported_ = co2_;
+        lastReportedTimeCO2_ = curMillis;
 
 #if SERIAL_LOGS
         Serial.print("CO2: update sent, because: ");
@@ -287,4 +255,14 @@ bool reportCO2Updates(bool firstTime)
     }
 
     return false;
+}
+
+void CO2Task::updateInternal(bool firstTime)
+{
+    update(firstTime);
+    reportUpdates(firstTime);
+}
+void CO2Task::update()
+{
+    updateInternal();
 }
