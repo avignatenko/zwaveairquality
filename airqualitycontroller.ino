@@ -7,6 +7,7 @@
 #include "pm25.h"
 #include "temphum.h"
 #include "tvoc.h"
+#include "lux.h"
 
 #include "Tasks.h"
 #include "common.h"
@@ -55,8 +56,9 @@ DHT22Sensor sensor(17);
 TempHumTask tempHumTask(sensor);
 TVOCTask tvocTask(9);
 CO2Task co2Task(Serial0, 6);
+LuxTask luxTask(A1);
 
-DisplayTask displayTask(tempHumTask, tvocTask, co2Task, Serial1);
+DisplayTask displayTask(tempHumTask, tvocTask, co2Task, luxTask, Serial1);
 
 // need to use this due to ZUNO preprocessor behaviour
 
@@ -139,8 +141,7 @@ void setup()
     displayTask.setup();
     tvocTask.setup();
     co2Task.setup();
-
-    setupLuxSensor();
+    luxTask.setup();
 
     setupPM25Sensor();
     updatePM25(true);

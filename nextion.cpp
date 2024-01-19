@@ -1,9 +1,9 @@
 #include "nextion.h"
 
-#include "lux.h"
 
-DisplayTask::DisplayTask(TempHumTask& tempHumTask, TVOCTask& tvocTask, CO2Task& co2Task, HardwareSerial& serial)
-    : Task(1000), tempHumTask_(tempHumTask), tvocTask_(tvocTask), co2Task_(co2Task), display_(serial)
+
+DisplayTask::DisplayTask(TempHumTask& tempHumTask, TVOCTask& tvocTask, CO2Task& co2Task, LuxTask& lux, HardwareSerial& serial)
+    : Task(1000), tempHumTask_(tempHumTask), tvocTask_(tvocTask), co2Task_(co2Task), lux_(lux), display_(serial)
 {
 }
 
@@ -141,14 +141,14 @@ void DisplayTask::updateNightMode()
 
         return;
     }
-    const uint16_t luminance = getLuminance();
+    const uint16_t luminance = lux_.getLuminance();
 
     const uint16_t histLowerBound = nightModeLuminance_ - nightModeLuminanceHysteresis;
     const uint16_t histUpperBound = nightModeLuminance_ + nightModeLuminanceHysteresis;
 
     if (luminance > histLowerBound && luminance < histUpperBound) return;  // no change, hysteresis in effect
 
-    bool isNight = (getLuminance() <= histLowerBound);
+    bool isNight = (lux_.getLuminance() <= histLowerBound);
     setNightMode(isNight);
 }
 

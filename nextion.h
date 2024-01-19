@@ -6,6 +6,7 @@
 #include "temphum.h"
 #include "tvoc.h"
 #include "co2.h"
+#include "lux.h"
 
 #include "EasyNextionLibrary.h"
 #include "HardwareSerial.h"
@@ -15,7 +16,7 @@ class TempHumTask;
 class DisplayTask : public Task
 {
 public:
-    DisplayTask(TempHumTask& tempHumTask, TVOCTask& tvocTask, CO2Task& co2Task, HardwareSerial& serial);
+    DisplayTask(TempHumTask& tempHumTask, TVOCTask& tvocTask, CO2Task& co2Task, LuxTask& lux, HardwareSerial& serial);
 
     byte getBrightness();
     void setBrightness(byte newValue);
@@ -45,7 +46,8 @@ private:
     TempHumTask& tempHumTask_;
     TVOCTask& tvocTask_;
     CO2Task& co2Task_;
-
+    LuxTask& lux_;
+    
     EasyNex display_;
 
     byte displayBrightness_ = 100;

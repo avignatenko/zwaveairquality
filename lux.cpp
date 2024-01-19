@@ -1,17 +1,21 @@
 #include "lux.h"
 
-void setupLuxSensor()
+LuxTask::LuxTask(uint8_t pin) : Task(10000), pin_(pin) {}
+
+void LuxTask::setup()
 {
-    pinMode(TEMPT6000_PIN, INPUT); // define pin as input
+    pinMode(pin_, INPUT);  // define pin as input
 }
 
-uint16_t getLuminance()
+uint16_t LuxTask::getLuminance() { return lux_;}
+
+void LuxTask::update()
 {
     int rawValue = 0;
     const int TOTAL_AVERAGE = 10;
     for (int i = 0; i < TOTAL_AVERAGE; ++i)
     {
-        rawValue += analogRead(TEMPT6000_PIN);
+        rawValue += analogRead(pin_);
         delay(2);
     }
     rawValue /= TOTAL_AVERAGE;
@@ -23,7 +27,7 @@ uint16_t getLuminance()
 
     // get from TEMP6000 sensor
     float volts = rawValue * 3.0 / 2047.0;
-    float amps = volts / 10000.0; // across 10,000 Ohms (series resistor)
+    float amps = volts / 10000.0;  // across 10,000 Ohms (series resistor)
     float microamps = amps * 1000000;
     float lux = microamps * 2.0;
 
@@ -32,5 +36,6 @@ uint16_t getLuminance()
     Serial.println((uint16_t)lux);
 #endif
 
-    return (uint16_t)lux;
+    lux_ = (uint16_t)lux;
+    
 }

@@ -1,8 +1,21 @@
 #pragma once
 
 #include "common.h"
+#include "tasks.h"
 
-const int TEMPT6000_PIN = A1;
+class LuxTask : public Task
+{
+public:
+    LuxTask(uint8_t pin);
 
-void setupLuxSensor();
-uint16_t getLuminance();
+    void setup();
+    uint16_t getLuminance();
+
+protected:
+    void update() override;
+
+private:
+    uint8_t pin_;
+
+    uint16_t lux_ = 0;
+};
