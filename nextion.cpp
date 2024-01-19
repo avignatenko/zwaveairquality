@@ -10,12 +10,12 @@ DisplayTask::DisplayTask(TempHumTask& tempHumTask, HardwareSerial& serial)
 {
 }
 
-byte DisplayTask::getDisplayBrightness()
+byte DisplayTask::getBrightness()
 {
     return s_displayBrightness;
 }
 
-void DisplayTask::setDisplayBrightness(byte newValue)
+void DisplayTask::setBrightness(byte newValue)
 {
     s_displayBrightness = newValue;
     display_.writeNum("dim", s_displayBrightness);
@@ -33,7 +33,7 @@ void DisplayTask::setDayMode()
     display_.writeNum("col_s3_txt", 65535);
     display_.writeNum("col_s4_bkg", 63495);
     display_.writeNum("col_s4_txt", 65535);
-    setDisplayBrightness(100);
+    setBrightness(100);
 }
 
 void DisplayTask::setNightMode()
@@ -48,14 +48,14 @@ void DisplayTask::setNightMode()
     display_.writeNum("col_s3_txt", 64512);
     display_.writeNum("col_s4_bkg", 0);
     display_.writeNum("col_s4_txt", 63495);
-    setDisplayBrightness(5);
+    setBrightness(5);
 }
 
-byte DisplayTask::getDisplayNightMode()
+byte DisplayTask::getNightMode()
 {
     return s_nightMode;
 }
-void DisplayTask::setDisplayNightMode(byte val)
+void DisplayTask::setNightMode(byte val)
 {
     if (s_nightMode == val) return;  // no change
 
@@ -75,7 +75,7 @@ void DisplayTask::setup()
 {
     display_.begin(9600);
     delay(500);  // Wait for Nextion to start
-    setDisplayNightMode(0);
+    setNightMode(0);
 }
 
 int temperatureToSeverity(int temp)
@@ -152,10 +152,10 @@ void DisplayTask::updateNightMode()
     if (luminance > histLowerBound && luminance < histUpperBound) return;  // no change, hysteresis in effect
 
     bool isNight = (getLuminance() <= histLowerBound);
-    setDisplayNightMode(isNight);
+    setNightMode(isNight);
 }
 
-void DisplayTask::updateDisplayFromCFGParams()
+void DisplayTask::updateFromCFGParams()
 {
     s_auto_night_mode = zunoLoadCFGParam(CONFIG_AUTO_NIGHT_MODE);
     s_night_mode_luminance = zunoLoadCFGParam(CONFIG_NIGHT_MODE_LUMINANCE);

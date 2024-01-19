@@ -15,11 +15,11 @@ class DisplayTask : public Task
 public:
     DisplayTask(TempHumTask& tempHumTask, HardwareSerial& serial);
 
-    byte getDisplayBrightness();
-    void setDisplayBrightness(byte newValue);
-    byte getDisplayNightMode();
-    void setDisplayNightMode(byte val);
-    void updateDisplayFromCFGParams();
+    byte getBrightness();
+    void setBrightness(byte newValue);
+    byte getNightMode();
+    void setNightMode(byte val);
+    void updateFromCFGParams();
 
     void setup();
 

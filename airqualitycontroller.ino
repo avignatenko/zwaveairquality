@@ -62,11 +62,11 @@ DisplayTask displayTask(tempHumTask, Serial1);
 
 byte getDisplayBrightness1()
 {
-    return displayTask.getDisplayBrightness();
+    return displayTask.getBrightness();
 }
 void setDisplayBrightness1(byte value)
 {
-    return displayTask.setDisplayBrightness(value);
+    return displayTask.setBrightness(value);
 }
 
 word getTemperature1()
@@ -88,11 +88,11 @@ byte getTVOCPercent1()
 
 byte getDisplayNightMode1()
 {
-    return displayTask.getDisplayNightMode();
+    return displayTask.getNightMode();
 }
 void setNightMode1(byte newValue)
 {
-    displayTask.setDisplayNightMode(newValue);
+    displayTask.setNightMode(newValue);
 }
 
 ZUNO_SETUP_CHANNELS(ZUNO_SWITCH_MULTILEVEL(getDisplayBrightness1, setDisplayBrightness1),
@@ -117,7 +117,7 @@ ZUNO_SETUP_CFGPARAMETER_HANDLER(configParameterChanged2);
 void updateFromCFGParams()
 {
     tempHumTask.updateTempHumFromCFGParams();
-    displayTask.updateDisplayFromCFGParams();
+    displayTask.updateFromCFGParams();
 }
 
 void configParameterChanged2(byte param, uint32_t value)
