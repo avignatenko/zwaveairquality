@@ -56,16 +56,17 @@ DHT22Sensor sensor(PIN_DHT);
 #endif
 
 TempHumTask tempHumTask(sensor);
+DisplayTask displayTask(tempHumTask, Serial1);
 
 // need to use this due to ZUNO preprocessor behaviour
 
 byte getDisplayBrightness1()
 {
-    return getDisplayBrightness();
+    return displayTask.getDisplayBrightness();
 }
 void setDisplayBrightness1(byte value)
 {
-    return setDisplayBrightness(value);
+    return displayTask.setDisplayBrightness(value);
 }
 
 word getTemperature1()
@@ -87,11 +88,11 @@ byte getTVOCPercent1()
 
 byte getDisplayNightMode1()
 {
-    return getDisplayNightMode();
+    return displayTask.getDisplayNightMode();
 }
 void setNightMode1(byte newValue)
 {
-    setDisplayNightMode(newValue);
+    displayTask.setDisplayNightMode(newValue);
 }
 
 ZUNO_SETUP_CHANNELS(ZUNO_SWITCH_MULTILEVEL(getDisplayBrightness1, setDisplayBrightness1),
@@ -116,7 +117,7 @@ ZUNO_SETUP_CFGPARAMETER_HANDLER(configParameterChanged2);
 void updateFromCFGParams()
 {
     tempHumTask.updateTempHumFromCFGParams();
-    updateDisplayFromCFGParams();
+    displayTask.updateDisplayFromCFGParams();
 }
 
 void configParameterChanged2(byte param, uint32_t value)
@@ -154,8 +155,8 @@ void setup()
 
     updateFromCFGParams();
 
-    setupDisplay();
     tempHumTask.setup();
+    displayTask.setup();
     setupTVOC();
     setupCO2();
     setupLuxSensor();
@@ -167,7 +168,6 @@ void setup()
 
     reportUpdates(true);  // first time
 
-    updateDisplay();
 }
 
 void loop()
@@ -176,8 +176,6 @@ void loop()
     updateCO2();
     updatePM25();
     reportUpdates();
-
-    updateDisplay();
 
     delay(2000);
 }
