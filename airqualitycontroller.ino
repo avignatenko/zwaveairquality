@@ -6,6 +6,7 @@
 #include "co2.h"
 #include "nextion.h"
 #include "lux.h"
+#include "pm25.h"
 
 #include "common.h"
 
@@ -116,10 +117,12 @@ void setup()
   setupTVOC();
   setupCO2();
   setupLuxSensor();
+  setupPM25Sensor();
 
   updateTempHumSensor();
   updateTVOC(true); // first time
   updateCO2(true);
+  updatePM25(true);
 
   reportUpdates(true); // first time
 
@@ -132,7 +135,7 @@ void loop()
   updateTempHumSensor();
   updateTVOC();
   updateCO2();
-
+  updatePM25();
   reportUpdates();
 
   updateDisplay();
