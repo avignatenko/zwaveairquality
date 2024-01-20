@@ -15,6 +15,11 @@ struct SerialData
     {
         if (activeChannel_ == channel) return;  // already active
 
+#if SERIAL_LOGS
+        Serial.print("Serial: activate channel ");
+        Serial.println(channel);
+#endif
+
         // read everything left before switching
         while (serial_.available()) serial_.read();
 
@@ -22,6 +27,9 @@ struct SerialData
         digitalWrite(s0pin_, channel % 2);
         digitalWrite(s1pin_, channel / 2);
 
+        // read everything left after switching
+        while (serial_.available()) serial_.read();
+        
         activeChannel_ = channel;
     }
 

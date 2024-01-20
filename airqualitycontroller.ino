@@ -8,7 +8,6 @@
 #include "serialex.h"
 #include "temphum.h"
 #include "tvoc.h"
-#include "luxtemt6000.h"
 
 #include "Tasks.h"
 #include "common.h"
@@ -60,7 +59,17 @@ DHT22Sensor sensor(17);
 
 #endif
 
+#if defined LUX_GY302
+
+#include "luxgy302.h"
+LuxGY302 luxSensor(Wire0);
+
+#elif if defined LUX_TEMT6000
+
+#include "luxtemt6000.h"
 LuxTEMT6000 luxSensor(4);
+
+#endif
 
 TempHumTask tempHumTask(sensor);
 TVOCTask tvocTask(9);

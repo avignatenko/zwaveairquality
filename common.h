@@ -6,7 +6,10 @@
 
 // choose temp & humidity sensor
 #define SENSIRION_DHT_SENSOR 1
-#define DHT22_SENSOR 1
+//#define DHT22_SENSOR 1
+
+#define LUX_GY302 1
+//#define LUX_TEMT6000 1
 
 enum
 {
