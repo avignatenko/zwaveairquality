@@ -62,7 +62,7 @@ DHT22Sensor sensor(17);
 #if defined LUX_GY302
 
 #include "luxgy302.h"
-LuxGY302 luxSensor(Wire0);
+LuxGY302 luxSensor(Wire0, 0x23);
 
 #elif if defined LUX_TEMT6000
 

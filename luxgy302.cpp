@@ -1,12 +1,19 @@
 #include "luxgy302.h"
+#include "BH1750.h"
 
-#include "ZUNO_BH1750.h"
-
-LuxGY302::LuxGY302(TwoWire& wire) : wire_(wire) {}
+LuxGY302::LuxGY302(TwoWire& wire, uint8_t addr) : wire_(wire), addr_(addr) {}
 
 void LuxGY302::setup()
 {
-    sensor_.begin();
+    // begin returns a boolean that can be used to detect setup problems.
+    bool result = sensor_.begin(BH1750::CONTINUOUS_HIGH_RES_MODE_2, addr_, &wire_);
+
+#if SERIAL_LOGS
+    if (result)
+        Serial.println("BH1750: begin OK");
+    else
+        Serial.println("BH1750: Error initialising");
+#endif
 }
 
 float LuxGY302::getLuminance()
@@ -16,12 +23,14 @@ float LuxGY302::getLuminance()
 
 void LuxGY302::update()
 {
-   
-    uint16_t lux = sensor_.readLightLevel();
+    if (sensor_.measurementReady())
+    {
+        float lux = sensor_.readLightLevel();
 #if SERIAL_LOGS
-    Serial.print("Lux: ");
-    Serial.println(lux);
+        Serial.print("BH1750 result: ");
+        Serial.print(lux);
+        Serial.println(" lx");
 #endif
-
-    luminance_ = lux;
+        luminance_ = lux;
+    }
 }

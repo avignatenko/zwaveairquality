@@ -1,6 +1,6 @@
 #include "lux.h"
 
-LuxTask::LuxTask(LuxSensor& sensor) : Task(10000), sensor_(sensor) {}
+LuxTask::LuxTask(LuxSensor& sensor) : Task(5000), sensor_(sensor) {}
 
 void LuxTask::setup()
 {

@@ -19,6 +19,9 @@ void PM25Task::requestData()
 {
     HardwareSerial& serial = serial_.captureSerial();
 
+    // clear everything which stays in the buffer, be prepared to correct answer
+    while (serial.available()) serial.read();
+
     byte buffer[9] = {0xff, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79};
     for (int i = 0; i < 9; ++i) serial.write(buffer[i]);
 }
@@ -76,6 +79,9 @@ PM25Task::Reply PM25Task::receiveData()
     Serial.print(" PM1.0: ");
     Serial.println(pm1d0_);
 #endif
+
+    // read everything else just in case
+    while (serial.available()) serial.read();
 
     return REPLY_OK;
 }
