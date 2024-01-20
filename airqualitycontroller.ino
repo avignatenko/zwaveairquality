@@ -154,6 +154,17 @@ void configParameterChanged2(byte param, uint32_t value)
     updateFromCFGParams();
 }
 
+void setupI2C()
+{
+    Serial.print("Main: wire init start");
+
+    int result = Wire.begin(0, WIRE_0_SCL_PIN, WIRE_0_SDA_PIN);
+#if SERIAL_LOGS
+    Serial.print("Main: wire init done");
+    Serial.print(result);
+#endif
+}
+
 void setup()
 {
 #if SERIAL_LOGS
@@ -161,15 +172,8 @@ void setup()
 #endif
 
     // i2c init with Wire0
-
-    Serial.print("Main: wire init");
-
-    int result = Wire.begin(0, WIRE_0_SCL_PIN, WIRE_0_SDA_PIN);
-#if SERIAL_LOGS
-    Serial.print("SHT: wire init ");
-    Serial.print(result);
-#endif
-
+    setupI2C();
+    
     updateFromCFGParams();
 
     tempHumTask.setup();
