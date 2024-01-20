@@ -146,8 +146,8 @@ void DisplayTask::updateCO2Display()
 
 void DisplayTask::updatePM25Display()
 {
-    display_.writeNum("pm25", pm25_.getPM2_5());
-    display_.writeNum("pm25_severity", pm25ToSeverity(pm25_.getPM2_5()));
+    display_.writeNum("pm25", pm25_.getPM2d5());
+    display_.writeNum("pm25_severity", pm25ToSeverity(pm25_.getPM2d5()));
 }
 
 

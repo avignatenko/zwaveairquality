@@ -63,3 +63,4 @@ private:
         5;  // day mode if lum >= nightModeLuminance_ + nightModeLuminanceHysteresis
             // night mode if lum <= nightModeLuminance_ - nightModeLuminanceHysteresis
 };
+

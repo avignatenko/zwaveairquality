@@ -1,7 +1,7 @@
 
 #include "co2.h"
 
-CO2Task::CO2Task(HardwareSerial& serial, uint8_t pinHd) : Task(2000), serial_(serial), pinHd_(pinHd) {}
+CO2Task::CO2Task(SerialEx& serial, uint8_t pinHd) : Task(2000), serial_(serial), pinHd_(pinHd) {}
 
 word CO2Task::getCO2()
 {
@@ -123,27 +123,31 @@ bool CO2Task::updatePreheat()
 }
 
 void CO2Task::sendCommand(uint8_t command, uint8_t arg)
-{
+{    
+    HardwareSerial& serial = serial_.captureSerial();
+
     // read everything which might stay there
-    while (serial_.available()) serial_.read();
+    while (serial.available()) serial.read();
 
     // send data request
     uint8_t bufferOut[9] = {0xFF, 0x01, command, arg, 0x00, 0x00, 0x00, 0x00, 0x00};
     bufferOut[8] = getCheckSum(bufferOut);
-    serial_.write(bufferOut, 9);
+    serial.write(bufferOut, 9);
 }
 
 CO2Task::Reply CO2Task::readReply(uint8_t command, uint8_t bufferOut[6])
 {
+    HardwareSerial& serial = serial_.captureSerial();
+
     // read co2 concentraction reply
     uint8_t bufferIn[9];
-    byte read = serial_.readBytes(bufferIn, 9);
+    byte read = serial.readBytes(bufferIn, 9);
     if (read == 0) return REPLY_NO_ANSWER;
 
     if (read != 9)
     {
         // read everything else
-        while (serial_.available()) serial_.read();
+        while (serial.available()) serial.read();
 
         return REPLY_WRONG_LENGTH;
     }

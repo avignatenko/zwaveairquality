@@ -5,6 +5,7 @@
 #include "lux.h"
 #include "nextion.h"
 #include "pm25.h"
+#include "serialex.h"
 #include "temphum.h"
 #include "tvoc.h"
 
@@ -36,6 +37,13 @@
 ZUNO_ENABLE(MODERN_MULTICHANNEL  // No clusters, the first channel is mapped to NIF only
 );
 
+SerialData serialData0(12, 14, Serial0);
+
+SerialEx SerialEx00(0, serialData0);
+SerialEx SerialEx01(1, serialData0);
+SerialEx SerialEx02(2, serialData0);
+SerialEx SerialEx03(3, serialData0);
+
 #if defined SENSIRION_DHT_SENSOR
 
 #include "temphumsensirion.h"
@@ -52,9 +60,9 @@ DHT22Sensor sensor(17);
 
 TempHumTask tempHumTask(sensor);
 TVOCTask tvocTask(9);
-CO2Task co2Task(Serial0, 6);
-LuxTask luxTask(A1);
-PM25Task pm25Task(Serial0);  // !!!!! which serial
+CO2Task co2Task(SerialEx00, 6);
+LuxTask luxTask(4);
+PM25Task pm25Task(SerialEx01);  // !!!!! which serial
 
 DisplayTask displayTask(tempHumTask, tvocTask, co2Task, luxTask, pm25Task, Serial1);
 
@@ -86,9 +94,9 @@ byte getTVOCPercent1()
     return tvocTask.getPercent();
 }
 
-byte getPM2_5()
+byte getPM2d5()
 {
-    return pm25Task.getPM2_5();
+    return pm25Task.getPM2d5();
 }
 
 byte getDisplayNightMode1()
@@ -106,7 +114,7 @@ ZUNO_SETUP_CHANNELS(ZUNO_SWITCH_MULTILEVEL(getDisplayBrightness1, setDisplayBrig
                     ZUNO_SENSOR_MULTILEVEL_TEMPERATURE_2(getTemperature1),
                     ZUNO_SENSOR_MULTILEVEL_HUMIDITY_2(getHumidity1), ZUNO_SENSOR_MULTILEVEL_CO2_LEVEL_2(getCO21),
                     ZUNO_SENSOR_MULTILEVEL_GP_VOC_PERCENT(getTVOCPercent1),
-                    ZUNO_SENSOR_MULTILEVEL_GP_PM2_5_LEVEL(getPM2_5));
+                    ZUNO_SENSOR_MULTILEVEL_GP_PM2_5_LEVEL(getPM2d5));
 
 ZUNO_SETUP_CONFIGPARAMETERS(ZUNO_CONFIG_PARAMETER("Temperature and humidity update period (sec)", 30, 86400, 1800),
                             ZUNO_CONFIG_PARAMETER_1B("Temperature update threshold", 1, 255, 2),

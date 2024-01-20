@@ -3,12 +3,12 @@
 #include "common.h"
 #include "tasks.h"
 
-#include "HardwareSerial.h"
+#include "serialex.h"
 
 class CO2Task : public Task
 {
 public:
-    CO2Task(HardwareSerial& serial, uint8_t pinHd);
+    CO2Task(SerialEx& serial, uint8_t pinHd);
 
     // returns CO2 as PPM value
     // value <= 100 means error (or still in pre-heat)
@@ -44,7 +44,7 @@ private:
     bool reportUpdates(bool firstTime = false);
 
 private:
-    HardwareSerial& serial_;
+    SerialEx& serial_;
     uint8_t pinHd_;
 
     const int PREHEAT_DURATION = 90 * 1000;  // 1.5 min
