@@ -123,7 +123,7 @@ bool CO2Task::updatePreheat()
 }
 
 void CO2Task::sendCommand(uint8_t command, uint8_t arg)
-{    
+{
     HardwareSerial& serial = serial_.captureSerial();
 
     // read everything which might stay there
@@ -165,6 +165,9 @@ CO2Task::Reply CO2Task::readReply(uint8_t command, uint8_t bufferOut[6])
     if (!ok) return REPLY_WRONG_CHECKSUM;
 
     memcpy(bufferOut, bufferIn + 2, 6);
+
+    // read everything else just in case
+    while (serial.available()) serial.read();
 
     return REPLY_OK;
 }
