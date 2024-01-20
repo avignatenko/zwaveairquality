@@ -44,12 +44,13 @@ SerialEx SerialEx01(1, serialData0);
 SerialEx SerialEx02(2, serialData0);
 SerialEx SerialEx03(3, serialData0);
 
+const uint8_t WIRE_0_SCL_PIN = 10;
+const uint8_t WIRE_0_SDA_PIN = 11;
+
 #if defined SENSIRION_DHT_SENSOR
 
 #include "temphumsensirion.h"
-const uint8_t SHT_SCL_PIN = 10;
-const uint8_t SHT_SDA_PIN = 11;
-SensirionSensor sensor(SHT_SCL_PIN, SHT_SDA_PIN);
+SensirionSensor sensor(Wire0);
 
 #elif defined DHT22_SENSOR
 
@@ -145,6 +146,16 @@ void setup()
 {
 #if SERIAL_LOGS
     Serial.begin(115200);
+#endif
+
+    // i2c init with Wire0
+
+    Serial.print("Main: wire init");
+
+    int result = Wire.begin(0, WIRE_0_SCL_PIN, WIRE_0_SDA_PIN);
+#if SERIAL_LOGS
+    Serial.print("SHT: wire init ");
+    Serial.print(result);
 #endif
 
     updateFromCFGParams();

@@ -11,7 +11,7 @@
 class SensirionSensor : public TempHumSensor
 {
 public:
-    SensirionSensor(uint8_t sclPin, uint8_t sdaPin);
+    SensirionSensor(TwoWire& wire);
 
     // returns temp (degrees Celcius)
     float getTemperatureInternal() override;
@@ -23,6 +23,7 @@ public:
     void update() override;
 
 private:
+    TwoWire& wire_;
     SHTSensor sht_;
 
     float humidity_ = 0;

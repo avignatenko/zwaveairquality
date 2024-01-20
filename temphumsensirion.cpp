@@ -1,10 +1,6 @@
 #include "temphumsensirion.h"
 
-
-SensirionSensor::SensirionSensor(uint8_t sclPin, uint8_t sdaPin) 
-{
-    Wire.begin(0, sclPin, sdaPin);
-}
+SensirionSensor::SensirionSensor(TwoWire& wire) : sht_(SHTSensor::SHT4X), wire_(wire) {}
 
 float SensirionSensor::getTemperatureInternal()
 {
@@ -18,7 +14,11 @@ float SensirionSensor::getHumidityInternal()
 
 void SensirionSensor::setup()
 {
-    if (sht_.init())
+#if SERIAL_LOGS
+    Serial.println("SHT: setup started");
+#endif
+
+    if (sht_.init(wire_))
     {
 #if SERIAL_LOGS
         Serial.println("SHT: init success");
