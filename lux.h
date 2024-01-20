@@ -2,20 +2,19 @@
 
 #include "common.h"
 #include "tasks.h"
+#include "luxsensor.h"
 
 class LuxTask : public Task
 {
 public:
-    LuxTask(uint8_t pin);
+    LuxTask(LuxSensor& sensor);
 
     void setup();
-    uint16_t getLuminance();
+    float getLuminance();
 
 protected:
     void update() override;
 
 private:
-    uint8_t pin_;
-
-    uint16_t lux_ = 0;
+    LuxSensor& sensor_;
 };

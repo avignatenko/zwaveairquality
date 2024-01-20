@@ -8,6 +8,7 @@
 #include "serialex.h"
 #include "temphum.h"
 #include "tvoc.h"
+#include "luxtemt6000.h"
 
 #include "Tasks.h"
 #include "common.h"
@@ -59,10 +60,12 @@ DHT22Sensor sensor(17);
 
 #endif
 
+LuxTEMT6000 luxSensor(4);
+
 TempHumTask tempHumTask(sensor);
 TVOCTask tvocTask(9);
 CO2Task co2Task(SerialEx00, 6);
-LuxTask luxTask(4);
+LuxTask luxTask(luxSensor);
 PM25Task pm25Task(SerialEx01);  // !!!!! which serial
 
 DisplayTask displayTask(tempHumTask, tvocTask, co2Task, luxTask, pm25Task, Serial1);

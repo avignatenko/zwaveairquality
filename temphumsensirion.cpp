@@ -1,6 +1,6 @@
 #include "temphumsensirion.h"
 
-SensirionSensor::SensirionSensor(TwoWire& wire) : sht_(SHTSensor::SHT4X), wire_(wire) {}
+SensirionSensor::SensirionSensor(TwoWire& wire) : wire_(wire) {}
 
 float SensirionSensor::getTemperatureInternal()
 {
