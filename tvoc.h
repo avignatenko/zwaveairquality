@@ -7,7 +7,7 @@
 class TVOCTask : public Task
 {
 public:
-    TVOCTask(uint8_t pin);
+    TVOCTask(uint8_t pin, uint8_t tvocUpdateChannel);
 
     void setup();
 
@@ -27,7 +27,8 @@ private:
     bool reportTVOCUpdates(bool firstTime = false);
 
 private:
-    uint8_t pin_;
+    const uint8_t pin_;
+    const uint8_t tvocUpdateChannel_;
 
     byte tvocLevel_ = 0;
     word tvocLastReported_ = 0;

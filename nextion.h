@@ -17,8 +17,23 @@ class TempHumTask;
 class DisplayTask : public Task
 {
 public:
-    DisplayTask(TempHumTask& tempHumTask, TVOCTask& tvocTask, CO2Task& co2Task, LuxTask& lux, PM25Task& pm25,
-                HardwareSerial& serial);
+    struct Tasks
+    {
+        TempHumTask& tempHumTask;
+        TVOCTask& tvocTask;
+        CO2Task& co2Task;
+        LuxTask& lux;
+        PM25Task& pm25;
+    };
+
+    struct Config
+    {
+        uint8_t nightModeAutoChannel;
+        uint8_t nightModeLuminanceChannel;
+        uint8_t nightModeHysteresisChannel;
+    };
+
+    DisplayTask(const Tasks& tasks, const Config& config, HardwareSerial& serial);
 
     byte getBrightness();
     void setBrightness(byte newValue);
@@ -46,11 +61,8 @@ private:
     void updateNightMode();
 
 private:
-    TempHumTask& tempHumTask_;
-    TVOCTask& tvocTask_;
-    CO2Task& co2Task_;
-    LuxTask& lux_;
-    PM25Task& pm25_;
+    Tasks tasks_;
+    Config config_;
 
     EasyNex display_;
 
@@ -63,4 +75,3 @@ private:
         5;  // day mode if lum >= nightModeLuminance_ + nightModeLuminanceHysteresis
             // night mode if lum <= nightModeLuminance_ - nightModeLuminanceHysteresis
 };
-

@@ -1,7 +1,10 @@
 
 #include "co2.h"
 
-CO2Task::CO2Task(SerialEx& serial, uint8_t pinHd) : Task(2000), serial_(serial), pinHd_(pinHd) {}
+CO2Task::CO2Task(SerialEx& serial, uint8_t pinHd, uint8_t reportChannel, uint8_t configChannel)
+    : Task(2000), serial_(serial), pinHd_(pinHd), configChannel_(configChannel), reportChannel_(reportChannel)
+{
+}
 
 word CO2Task::getCO2()
 {
@@ -10,11 +13,11 @@ word CO2Task::getCO2()
 
 void CO2Task::updateFromCFGParams()
 {
-    int value = zunoLoadCFGParam(CONFIG_CO2_START_CALIBRATION);
+    int value = zunoLoadCFGParam(configChannel_);
     if (value == 1 && !inCalibration_)
     {
         triggerCalibration();
-        zunoSaveCFGParam(CONFIG_CO2_START_CALIBRATION, 0);
+        zunoSaveCFGParam(configChannel_, 0);
     }
 }
 
@@ -246,7 +249,7 @@ bool CO2Task::reportUpdates(bool firstTime)
 
     if (firstTime || reportCO2 || timePassedCO2)
     {
-        zunoSendReport(CHANNEL_CO2);
+        zunoSendReport(reportChannel_);
         co2LastReported_ = co2_;
         lastReportedTimeCO2_ = curMillis;
 

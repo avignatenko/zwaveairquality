@@ -1,6 +1,9 @@
 #include "temphum.h"
 
-TempHumTask::TempHumTask(TempHumSensor& sensor) : Task(2000), sensor_(sensor) {}
+TempHumTask::TempHumTask(TempHumSensor& sensor, const Config& config, const Report& report)
+    : Task(2000), sensor_(sensor), config_(config), report_(report)
+{
+}
 
 void TempHumTask::setup()
 {
@@ -40,7 +43,7 @@ bool TempHumTask::reportTempUpdates(bool firstTime)
 
     if (firstTime || reportTemperature || timePassedTemperature)
     {
-        zunoSendReport(CHANNEL_TEMPERATURE);
+        zunoSendReport(report_.tempReportChannel);
         temperatureLastReported_ = getTemperature();
         lastReportedTimeTemperature_ = curMillis;
 
@@ -78,7 +81,7 @@ bool TempHumTask::reportHumUpdates(bool firstTime)
 
     if (firstTime || reportHumidity || timePassedHumidity)
     {
-        zunoSendReport(CHANNEL_HUMIDITY);
+        zunoSendReport(report_.humReportChannel);
         humidityLastReported_ = getHumidity();
         lastReportedTimeHumidity_ = curMillis;
 
@@ -98,11 +101,11 @@ bool TempHumTask::reportHumUpdates(bool firstTime)
 
 void TempHumTask::updateTempHumFromCFGParams()
 {
-    tempHumInterval_ = zunoLoadCFGParam(CONFIG_TEMPERATURE_HUMIDITY_INTERVAL_SEC);
-    tempThreshold_ = zunoLoadCFGParam(CONFIG_TEMPERATURE_THRESHOLD_DEGREES);
-    humThreshold_ = zunoLoadCFGParam(CONFIG_HUMIDITY_THRESHOLD_PERCENT);
-    tempCorrect_ = zunoLoadCFGParam(CONFIG_TEMPERATURE_CORRECTION_DEGREES);
-    humCorrect_ = zunoLoadCFGParam(CONFIG_HUMIDITY_CORRECTION_PERCENT);
+    tempHumInterval_ = zunoLoadCFGParam(config_.tempHumIntervalChannel);
+    tempThreshold_ = zunoLoadCFGParam(config_.tempThresholdChannel);
+    humThreshold_ = zunoLoadCFGParam(config_.humThresholdChannel);
+    tempCorrect_ = zunoLoadCFGParam(config_.tempCorrectChannel);
+    humCorrect_ = zunoLoadCFGParam(config_.humCorrectChannel);
 }
 
 void TempHumTask::updateInternal(bool firstTime)

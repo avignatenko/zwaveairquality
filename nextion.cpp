@@ -1,13 +1,9 @@
 #include "nextion.h"
 
-DisplayTask::DisplayTask(TempHumTask& tempHumTask, TVOCTask& tvocTask, CO2Task& co2Task, LuxTask& lux, PM25Task& pm25,
-                         HardwareSerial& serial)
+DisplayTask::DisplayTask(const Tasks& tasks, const Config& config, HardwareSerial& serial)
     : Task(1000),
-      tempHumTask_(tempHumTask),
-      tvocTask_(tvocTask),
-      co2Task_(co2Task),
-      lux_(lux),
-      pm25_(pm25),
+      tasks_(tasks),
+      config_(config),
       display_(serial)
 {
 }
@@ -122,34 +118,33 @@ int pm25ToSeverity(int pm25)
 
 void DisplayTask::updateTemperatureDisplay()
 {
-    display_.writeNum("temp", tempHumTask_.getTemperature());
-    display_.writeNum("temp_severity", temperatureToSeverity(tempHumTask_.getTemperature() / 10));
+    display_.writeNum("temp", tasks_.tempHumTask.getTemperature());
+    display_.writeNum("temp_severity", temperatureToSeverity(tasks_.tempHumTask.getTemperature() / 10));
 }
 
 void DisplayTask::updateHumidityDisplay()
 {
-    display_.writeNum("hum", tempHumTask_.getHumidity());
-    display_.writeNum("hum_severity", humidityToSeverity(tempHumTask_.getHumidity() / 10));
+    display_.writeNum("hum", tasks_.tempHumTask.getHumidity());
+    display_.writeNum("hum_severity", humidityToSeverity(tasks_.tempHumTask.getHumidity() / 10));
 }
 
 void DisplayTask::updateTVOCDisplay()
 {
-    display_.writeNum("tvoc", tvocTask_.get());
-    display_.writeNum("tvoc_severity", tvocToSeverity(tvocTask_.get()));
+    display_.writeNum("tvoc", tasks_.tvocTask.get());
+    display_.writeNum("tvoc_severity", tvocToSeverity(tasks_.tvocTask.get()));
 }
 
 void DisplayTask::updateCO2Display()
 {
-    display_.writeNum("co2", co2Task_.getCO2());
-    display_.writeNum("co2_severity", co2ToSeverity(co2Task_.getCO2()));
+    display_.writeNum("co2", tasks_.co2Task.getCO2());
+    display_.writeNum("co2_severity", co2ToSeverity(tasks_.co2Task.getCO2()));
 }
 
 void DisplayTask::updatePM25Display()
 {
-    display_.writeNum("pm25", pm25_.getPM2d5());
-    display_.writeNum("pm25_severity", pm25ToSeverity(pm25_.getPM2d5()));
+    display_.writeNum("pm25", tasks_.pm25.getPM2d5());
+    display_.writeNum("pm25_severity", pm25ToSeverity(tasks_.pm25.getPM2d5()));
 }
-
 
 void DisplayTask::updateNightMode()
 {
@@ -161,22 +156,22 @@ void DisplayTask::updateNightMode()
 
         return;
     }
-    const uint16_t luminance = lux_.getLuminance();
+    const uint16_t luminance = tasks_.lux.getLuminance();
 
     const uint16_t histLowerBound = nightModeLuminance_ - nightModeLuminanceHysteresis;
     const uint16_t histUpperBound = nightModeLuminance_ + nightModeLuminanceHysteresis;
 
     if (luminance > histLowerBound && luminance < histUpperBound) return;  // no change, hysteresis in effect
 
-    bool isNight = (lux_.getLuminance() <= histLowerBound);
+    bool isNight = (tasks_.lux.getLuminance() <= histLowerBound);
     setNightMode(isNight);
 }
 
 void DisplayTask::updateFromCFGParams()
 {
-    autoNightMode_ = zunoLoadCFGParam(CONFIG_AUTO_NIGHT_MODE);
-    nightModeLuminance_ = zunoLoadCFGParam(CONFIG_NIGHT_MODE_LUMINANCE);
-    nightModeLuminanceHysteresis = zunoLoadCFGParam(CONFIG_NIGHT_MODE_HYSTERESIS);
+    autoNightMode_ = zunoLoadCFGParam(config_.nightModeAutoChannel);
+    nightModeLuminance_ = zunoLoadCFGParam(config_.nightModeLuminanceChannel);
+    nightModeLuminanceHysteresis = zunoLoadCFGParam(config_.nightModeHysteresisChannel);
 
     if (nightModeLuminance_ < nightModeLuminanceHysteresis) nightModeLuminance_ = nightModeLuminanceHysteresis;
 

@@ -1,6 +1,6 @@
 #include "tvoc.h"
 
-TVOCTask::TVOCTask(uint8_t pin) : Task(2000), pin_(pin) {}
+TVOCTask::TVOCTask(uint8_t pin, uint8_t tvocUpdateChannel) : Task(2000), pin_(pin), tvocUpdateChannel_(tvocUpdateChannel) {}
 
 void TVOCTask::setup()
 {
@@ -49,7 +49,7 @@ bool TVOCTask::reportTVOCUpdates(bool firstTime)
 
     if (firstTime || reportTVOC || timePassedTVOC)
     {
-        zunoSendReport(CHANNEL_TVOC);
+        zunoSendReport(tvocUpdateChannel_);
         tvocLastReported_ = tvocLevel_;
         lastReportedTimeTVOC_ = curMillis;
 

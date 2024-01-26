@@ -7,7 +7,23 @@
 class TempHumTask : public Task
 {
 public:
-    TempHumTask(TempHumSensor& sensor);
+    struct Config
+    {
+        uint8_t tempHumIntervalChannel;
+        uint8_t tempThresholdChannel;
+        uint8_t humThresholdChannel;
+        uint8_t tempCorrectChannel;
+        uint8_t humCorrectChannel;
+    };
+
+    struct Report
+    {
+
+        uint8_t tempReportChannel;
+        uint8_t humReportChannel;
+    };
+
+    TempHumTask(TempHumSensor& sensor, const Config& config, const Report& report);
 
     // returns temp (degrees Celcius) * 10 as two bytes
     word getTemperature();
@@ -27,6 +43,8 @@ private:
     void updateInternal(bool firstTime = false);
 
 private:
+    Config config_;
+    Report report_;
     TempHumSensor& sensor_;
 
     word humidityLastReported_ = 0;

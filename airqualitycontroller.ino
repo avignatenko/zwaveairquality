@@ -11,31 +11,9 @@
 
 #include "Tasks.h"
 #include "common.h"
+#include "configaqc0.h"
 
-#define ZUNO_SENSOR_MULTILEVEL_TEMPERATURE_2(GETTER)                                                 \
-    ZUNO_SENSOR_MULTILEVEL(ZUNO_SENSOR_MULTILEVEL_TYPE_TEMPERATURE, SENSOR_MULTILEVEL_SCALE_CELSIUS, \
-                           SENSOR_MULTILEVEL_SIZE_TWO_BYTES, SENSOR_MULTILEVEL_PRECISION_ONE_DECIMAL, GETTER)
-
-#define ZUNO_SENSOR_MULTILEVEL_HUMIDITY_2(GETTER)                                                                   \
-    ZUNO_SENSOR_MULTILEVEL(ZUNO_SENSOR_MULTILEVEL_TYPE_RELATIVE_HUMIDITY, SENSOR_MULTILEVEL_SCALE_PERCENTAGE_VALUE, \
-                           SENSOR_MULTILEVEL_SIZE_TWO_BYTES, SENSOR_MULTILEVEL_PRECISION_ONE_DECIMAL, GETTER)
-
-#define ZUNO_SENSOR_MULTILEVEL_CO2_LEVEL_2(GETTER)                                                           \
-    ZUNO_SENSOR_MULTILEVEL(ZUNO_SENSOR_MULTILEVEL_TYPE_CO2_LEVEL, SENSOR_MULTILEVEL_SCALE_PARTS_PER_MILLION, \
-                           SENSOR_MULTILEVEL_SIZE_TWO_BYTES, SENSOR_MULTILEVEL_PRECISION_ZERO_DECIMALS, GETTER)
-
-#define ZUNO_SENSOR_MULTILEVEL_GP_PM2_5_LEVEL(GETTER)                                                     \
-    ZUNO_SENSOR_MULTILEVEL(ZUNO_SENSOR_MULTILEVEL_TYPE_GENERAL_PURPOSE_VALUE,                             \
-                           SENSOR_MULTILEVEL_SCALE_DIMENSIONLESS_VALUE, SENSOR_MULTILEVEL_SIZE_TWO_BYTES, \
-                           SENSOR_MULTILEVEL_PRECISION_ZERO_DECIMALS, GETTER)
-
-#define ZUNO_SENSOR_MULTILEVEL_GP_VOC_PERCENT(GETTER)                                                 \
-    ZUNO_SENSOR_MULTILEVEL(ZUNO_SENSOR_MULTILEVEL_TYPE_GENERAL_PURPOSE_VALUE,                         \
-                           SENSOR_MULTILEVEL_SCALE_PERCENTAGE_VALUE, SENSOR_MULTILEVEL_SIZE_ONE_BYTE, \
-                           SENSOR_MULTILEVEL_PRECISION_ZERO_DECIMALS, GETTER)
-
-ZUNO_ENABLE(MODERN_MULTICHANNEL  // No clusters, the first channel is mapped to NIF only
-);
+ZUNO_ENABLE(MODERN_MULTICHANNEL);  // No clusters, the first channel is mapped to NIF only
 
 SerialData serialData0(12, 14, Serial0);
 
@@ -71,13 +49,20 @@ LuxTEMT6000 luxSensor(4);
 
 #endif
 
-TempHumTask tempHumTask(sensor);
-TVOCTask tvocTask(9);
-CO2Task co2Task(SerialEx00, 6);
+TempHumTask tempHumTask(sensor,
+                        TempHumTask::Config{CONFIG_TEMPERATURE_HUMIDITY_INTERVAL_SEC,
+                                            CONFIG_TEMPERATURE_THRESHOLD_DEGREES, CONFIG_HUMIDITY_THRESHOLD_PERCENT,
+                                            CONFIG_TEMPERATURE_CORRECTION_DEGREES, CONFIG_HUMIDITY_CORRECTION_PERCENT},
+                        TempHumTask::Report{CHANNEL_TEMPERATURE, CHANNEL_HUMIDITY});
+TVOCTask tvocTask(9, CHANNEL_TVOC);
+CO2Task co2Task(SerialEx00, 6, CHANNEL_CO2, CONFIG_CO2_START_CALIBRATION);
 LuxTask luxTask(luxSensor);
-PM25Task pm25Task(SerialEx01);  // !!!!! which serial
+PM25Task pm25Task(SerialEx01);
 
-DisplayTask displayTask(tempHumTask, tvocTask, co2Task, luxTask, pm25Task, Serial1);
+DisplayTask displayTask(DisplayTask::Tasks{tempHumTask, tvocTask, co2Task, luxTask, pm25Task},
+                        DisplayTask::Config{CONFIG_AUTO_NIGHT_MODE, CONFIG_NIGHT_MODE_LUMINANCE,
+                                            CONFIG_NIGHT_MODE_HYSTERESIS},
+                        Serial1);
 
 // need to use this due to ZUNO preprocessor behaviour
 
@@ -173,7 +158,7 @@ void setup()
 
     // i2c init with Wire0
     setupI2C();
-    
+
     updateFromCFGParams();
 
     tempHumTask.setup();
