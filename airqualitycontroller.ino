@@ -15,37 +15,34 @@
 
 ZUNO_ENABLE(MODERN_MULTICHANNEL);  // No clusters, the first channel is mapped to NIF only
 
-SerialData serialData0(12, 14, Serial0);
+SerialData serialData0(SERIAL_MULTIPLEXOR_S0_PIN, SERIAL_MULTIPLEXOR_S1_PIN, multiplexorSerial);
 
 SerialEx SerialEx00(0, serialData0);
 SerialEx SerialEx01(1, serialData0);
 SerialEx SerialEx02(2, serialData0);
 SerialEx SerialEx03(3, serialData0);
 
-const uint8_t WIRE_0_SCL_PIN = 10;
-const uint8_t WIRE_0_SDA_PIN = 11;
-
 #if defined SENSIRION_DHT_SENSOR
 
 #include "temphumsensirion.h"
-SensirionSensor sensor(Wire0);
+SensirionSensor sensor(dhtWire);
 
 #elif defined DHT22_SENSOR
 
 #include "temphumdht22.h"
-DHT22Sensor sensor(17);
+DHT22Sensor sensor(DHT22_PIN);
 
 #endif
 
 #if defined LUX_GY302
 
 #include "luxgy302.h"
-LuxGY302 luxSensor(Wire0, 0x23);
+LuxGY302 luxSensor(luxWire, BH1750_ADDRESS);
 
 #elif if defined LUX_TEMT6000
 
 #include "luxtemt6000.h"
-LuxTEMT6000 luxSensor(4);
+LuxTEMT6000 luxSensor(TEMT6000_PIN);
 
 #endif
 
@@ -54,15 +51,16 @@ TempHumTask tempHumTask(sensor,
                                             CONFIG_TEMPERATURE_THRESHOLD_DEGREES, CONFIG_HUMIDITY_THRESHOLD_PERCENT,
                                             CONFIG_TEMPERATURE_CORRECTION_DEGREES, CONFIG_HUMIDITY_CORRECTION_PERCENT},
                         TempHumTask::Report{CHANNEL_TEMPERATURE, CHANNEL_HUMIDITY});
-TVOCTask tvocTask(9, CHANNEL_TVOC);
-CO2Task co2Task(SerialEx00, 6, CHANNEL_CO2, CONFIG_CO2_START_CALIBRATION);
+
+TVOCTask tvocTask(TVOC_PIN, CHANNEL_TVOC);
+CO2Task co2Task(co2Serial, CO2_HD_PIN, CHANNEL_CO2, CONFIG_CO2_START_CALIBRATION);
 LuxTask luxTask(luxSensor);
-PM25Task pm25Task(SerialEx01);
+PM25Task pm25Task(pm25Serial);
 
 DisplayTask displayTask(DisplayTask::Tasks{tempHumTask, tvocTask, co2Task, luxTask, pm25Task},
                         DisplayTask::Config{CONFIG_AUTO_NIGHT_MODE, CONFIG_NIGHT_MODE_LUMINANCE,
                                             CONFIG_NIGHT_MODE_HYSTERESIS},
-                        Serial1);
+                        displaySerial);
 
 // need to use this due to ZUNO preprocessor behaviour
 

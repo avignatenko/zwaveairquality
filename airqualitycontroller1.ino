@@ -7,18 +7,15 @@
 #include "common.h"
 #include "configaqc1.h"
 
-const uint8_t WIRE_0_SCL_PIN = 10;
-const uint8_t WIRE_0_SDA_PIN = 11;
-
 #if defined SENSIRION_DHT_SENSOR
 
 #include "temphumsensirion.h"
-SensirionSensor sensor(Wire0);
+SensirionSensor sensor(dhtWire);
 
 #elif defined DHT22_SENSOR
 
 #include "temphumdht22.h"
-DHT22Sensor sensor(17);
+DHT22Sensor sensor(DHT22_PIN);
 
 #endif
 
@@ -48,7 +45,6 @@ ZUNO_SETUP_CONFIGPARAMETERS(ZUNO_CONFIG_PARAMETER("Temperature and humidity upda
                             ZUNO_CONFIG_PARAMETER_1B("Temperature correction (deg * 10 + 100)", 0, 200, 100),
                             ZUNO_CONFIG_PARAMETER_1B("Humidity correction (% * 10 + 100)", 0, 200, 100));
 
-
 void updateFromCFGParams()
 {
     tempHumTask.updateTempHumFromCFGParams();
@@ -61,7 +57,6 @@ void configParameterChanged(uint8_t param, uint32_t value)
 }
 
 ZUNO_SETUP_CFGPARAMETER_HANDLER(configParameterChanged);
-
 
 void setupI2C()
 {
