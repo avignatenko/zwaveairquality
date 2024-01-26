@@ -124,8 +124,6 @@ ZUNO_SETUP_CONFIGPARAMETERS(ZUNO_CONFIG_PARAMETER("Temperature and humidity upda
                             ZUNO_CONFIG_PARAMETER_1B("Night mode luminance (lux)", 0, 100, 10),
                             ZUNO_CONFIG_PARAMETER_1B("Night mode hysteresis (lux)", 0, 50, 5));
 
-ZUNO_SETUP_CFGPARAMETER_HANDLER(configParameterChanged2);
-
 void updateFromCFGParams()
 {
     tempHumTask.updateTempHumFromCFGParams();
@@ -133,11 +131,13 @@ void updateFromCFGParams()
     co2Task.updateFromCFGParams();
 }
 
-void configParameterChanged2(byte param, uint32_t value)
+void configParameterChanged(byte param, uint32_t value)
 {
     zunoSaveCFGParam(param, value);
     updateFromCFGParams();
 }
+
+ZUNO_SETUP_CFGPARAMETER_HANDLER(configParameterChanged);
 
 void setupI2C()
 {

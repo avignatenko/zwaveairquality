@@ -101,6 +101,9 @@ bool TempHumTask::reportHumUpdates(bool firstTime)
 
 void TempHumTask::updateTempHumFromCFGParams()
 {
+#if SERIAL_LOGS 
+   Serial.println("TempHum: update config started");
+#endif
     tempHumInterval_ = zunoLoadCFGParam(config_.tempHumIntervalChannel);
     tempThreshold_ = zunoLoadCFGParam(config_.tempThresholdChannel);
     humThreshold_ = zunoLoadCFGParam(config_.humThresholdChannel);
@@ -110,7 +113,10 @@ void TempHumTask::updateTempHumFromCFGParams()
 
 void TempHumTask::updateInternal(bool firstTime)
 {
+#if SERIAL_LOGS
     Serial.println("TempHum: update started");
+#endif
+
     sensor_.update();
 
     reportTempUpdates(firstTime);

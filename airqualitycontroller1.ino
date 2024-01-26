@@ -48,18 +48,20 @@ ZUNO_SETUP_CONFIGPARAMETERS(ZUNO_CONFIG_PARAMETER("Temperature and humidity upda
                             ZUNO_CONFIG_PARAMETER_1B("Temperature correction (deg * 10 + 100)", 0, 200, 100),
                             ZUNO_CONFIG_PARAMETER_1B("Humidity correction (% * 10 + 100)", 0, 200, 100));
 
-ZUNO_SETUP_CFGPARAMETER_HANDLER(configParameterChanged2);
 
 void updateFromCFGParams()
 {
     tempHumTask.updateTempHumFromCFGParams();
 }
 
-void configParameterChanged2(byte param, uint32_t value)
+void configParameterChanged(uint8_t param, uint32_t value)
 {
     zunoSaveCFGParam(param, value);
     updateFromCFGParams();
 }
+
+ZUNO_SETUP_CFGPARAMETER_HANDLER(configParameterChanged);
+
 
 void setupI2C()
 {
