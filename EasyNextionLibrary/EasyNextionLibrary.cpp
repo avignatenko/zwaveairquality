@@ -23,9 +23,13 @@ EasyNex::EasyNex(HardwareSerial& serial){  // Constructor's parameter is the Ser
 
 void EasyNex::begin(unsigned long baud){
   _serial->begin(baud);  // We pass the initialization data to the objects (baud rate) default: 9600
-  
   delay(100);            // Wait for the Serial to initialize
   
+  beginLazy();
+}
+
+
+void EasyNex::beginLazy(){ 
   _tmr1 = millis();
   while(_serial->available() > 0){     // Read the Serial until it is empty. This is used to clear Serial buffer
     if((millis() - _tmr1) > 400UL){    // Reading... Waiting... But not forever...... 
@@ -34,7 +38,6 @@ void EasyNex::begin(unsigned long baud){
       _serial->read();                // Read and delete bytes
   }
 }
-
 
 /*
  * -- writeNum(String, uint32_t): for writing in components' numeric attribute
