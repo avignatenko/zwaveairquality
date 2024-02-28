@@ -1,10 +1,7 @@
 #include "nextion.h"
 
-DisplayTask::DisplayTask(const Tasks& tasks, const Config& config, HardwareSerial& serial)
-    : Task(1000),
-      tasks_(tasks),
-      config_(config),
-      display_(serial)
+DisplayTask::DisplayTask(const Tasks& tasks, const Config& config, HardwareSerial& serial, uint8_t rxpin, uint8_t txpin)
+    : Task(1000), tasks_(tasks), config_(config), display_(serial), serial_(serial), rxpin_(rxpin), txpin_(txpin)
 {
 }
 
@@ -71,7 +68,24 @@ void DisplayTask::setNightMode(byte val)
 
 void DisplayTask::setup()
 {
-    display_.begin(9600);
+    if (rxpin_ == 0 || txpin_ == 0)
+    {
+        display_.begin(9600);
+    }
+    else
+    {
+#if SERIAL_LOGS
+        Serial.print("Nextion: Starting with custom rx, tx: ");
+        Serial.print(rxpin_);
+        Serial.print(" ");
+        Serial.print(txpin_);
+        Serial.println();
+#endif
+        serial_.begin(9600, SERIAL_8N1, rxpin_, txpin_);
+        ;
+        display_.beginLazy();
+    }
+
     delay(500);  // Wait for Nextion to start
     setNightMode(0);
 }

@@ -33,7 +33,7 @@ public:
         uint8_t nightModeHysteresisChannel;
     };
 
-    DisplayTask(const Tasks& tasks, const Config& config, HardwareSerial& serial);
+    DisplayTask(const Tasks& tasks, const Config& config, HardwareSerial& serial, uint8_t rxpin = 0, uint8_t txpin = 0);
 
     byte getBrightness();
     void setBrightness(byte newValue);
@@ -65,6 +65,9 @@ private:
     Config config_;
 
     EasyNex display_;
+    HardwareSerial& serial_;
+    uint8_t rxpin_;
+    uint8_t txpin_;
 
     byte displayBrightness_ = 100;
     bool nightMode_ = false;

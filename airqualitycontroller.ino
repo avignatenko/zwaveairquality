@@ -60,7 +60,7 @@ PM25Task pm25Task(pm25Serial);
 DisplayTask displayTask(DisplayTask::Tasks{tempHumTask, tvocTask, co2Task, luxTask, pm25Task},
                         DisplayTask::Config{CONFIG_AUTO_NIGHT_MODE, CONFIG_NIGHT_MODE_LUMINANCE,
                                             CONFIG_NIGHT_MODE_HYSTERESIS},
-                        displaySerial);
+                        displaySerial, DISPLAY_RX_PIN, DISPLAY_TX_PIN);
 
 // need to use this due to ZUNO preprocessor behaviour
 

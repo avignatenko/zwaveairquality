@@ -85,3 +85,5 @@ SerialEx& pm25Serial = SerialEx01;
 // Display
 
 HardwareSerial& displaySerial = Serial1;
+const uint8_t DISPLAY_RX_PIN = 15;
+const uint8_t DISPLAY_TX_PIN = 14;
