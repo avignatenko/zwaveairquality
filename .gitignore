@@ -39,3 +39,6 @@
 /Z-Uno2
 /package_z-wave2.me_index.json
 /setting.json
+
+# MacOS
+.DS_Store
