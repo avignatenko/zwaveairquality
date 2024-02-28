@@ -15,7 +15,7 @@
 
 ZUNO_ENABLE(MODERN_MULTICHANNEL);  // No clusters, the first channel is mapped to NIF only
 
-SerialData serialData0(SERIAL_MULTIPLEXOR_S0_PIN, SERIAL_MULTIPLEXOR_S1_PIN, multiplexorSerial);
+SerialData serialData0(SERIAL_MULTIPLEXOR_S0_PIN, SERIAL_MULTIPLEXOR_S1_PIN, multiplexorSerial, SERIAL_MULTIPLEXOR_RX_PIN, SERIAL_MULTIPLEXOR_TX_PIN);
 
 SerialEx SerialEx00(0, serialData0);
 SerialEx SerialEx01(1, serialData0);

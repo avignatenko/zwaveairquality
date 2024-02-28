@@ -5,7 +5,8 @@
 
 struct SerialData
 {
-    SerialData(uint8_t s0pin, uint8_t s1pin, HardwareSerial& serial) : s0pin_(s0pin), s1pin_(s1pin), serial_(serial)
+    SerialData(uint8_t s0pin, uint8_t s1pin, HardwareSerial& serial, uint8_t rxpin = 0, uint8_t txpin = 0)
+        : s0pin_(s0pin), s1pin_(s1pin), serial_(serial), rxpin_(rxpin), txpin_(txpin)
     {
         pinMode(s0pin_, OUTPUT);
         pinMode(s1pin_, OUTPUT);
@@ -29,7 +30,7 @@ struct SerialData
 
         // read everything left after switching
         while (serial_.available()) serial_.read();
-        
+
         activeChannel_ = channel;
     }
 
@@ -38,7 +39,19 @@ struct SerialData
         if (!started_ || (started_ && baud_ != baud))
         {
             if (started_) serial_.end();
-            serial_.begin(baud);
+            if (rxpin_ == 0 || txpin_ == 0)
+                serial_.begin(baud);
+            else
+            {
+#if SERIAL_LOGS
+                Serial.print("SerialData: Starting with custom rx, tx: ");
+                Serial.print(rxpin_);
+                Serial.print(" ");
+                Serial.print(txpin_);
+                Serial.println();
+#endif
+                serial_.begin(baud, SERIAL_8N1, rxpin_, txpin_);
+            }
         }
 
         started_ = true;
@@ -56,6 +69,8 @@ struct SerialData
     uint8_t s1pin_;
 
     HardwareSerial& serial_;
+    uint8_t rxpin_;
+    uint8_t txpin_;
     bool started_ = false;
     unsigned long baud_ = 0;
     uint8_t activeChannel_ = ~0;
