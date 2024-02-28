@@ -58,8 +58,11 @@ const uint8_t WIRE_0_SCL_PIN = 10;
 const uint8_t WIRE_0_SDA_PIN = 11;
 
 // Serial multiplexor
-const uint8_t SERIAL_MULTIPLEXOR_S0_PIN = 12;
-const uint8_t SERIAL_MULTIPLEXOR_S1_PIN = 14;
+const uint8_t SERIAL_MULTIPLEXOR_S0_PIN = 21;
+const uint8_t SERIAL_MULTIPLEXOR_S1_PIN = 22;
+const uint8_t SERIAL_MULTIPLEXOR_RX_PIN = 20;
+const uint8_t SERIAL_MULTIPLEXOR_TX_PIN = 19;
+
 HardwareSerial& multiplexorSerial = Serial0;
 
 // Serials
@@ -69,11 +72,11 @@ extern SerialEx SerialEx02;
 extern SerialEx SerialEx03;
 
 // TVOC
-const uint8_t TVOC_PIN = 9;
+const uint8_t TVOC_PIN = 0;
 
 // CO2
 SerialEx& co2Serial = SerialEx00;
-const uint8_t CO2_HD_PIN = 6;
+const uint8_t CO2_HD_PIN = 9;
 
 // PM2.5
 
