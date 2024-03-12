@@ -35,18 +35,26 @@ public:
 
     DisplayTask(const Tasks& tasks, const Config& config, HardwareSerial& serial, uint8_t rxpin = 0, uint8_t txpin = 0);
 
-    byte getBrightness();
-    void setBrightness(byte newValue);
+      byte getDayBrightness();
+    void setDayBrightness(byte newValue);
+  
     byte getNightMode();
     void setNightMode(byte val);
     void updateFromCFGParams();
 
+    // enable/display display (enabled by default)
+    void enable(bool enable);
+    bool enabled();
+
     void setup();
+
 
 protected:
     void update() override;
 
 private:
+    void setBrightness(byte newValue);
+
     bool isAutoNightMode() { return autoNightMode_; }
     uint16_t getNightModeLuminance() { return nightModeLuminance_; }
 
@@ -64,12 +72,15 @@ private:
     Tasks tasks_;
     Config config_;
 
+    bool enabled_ = true;
+    
     EasyNex display_;
     HardwareSerial& serial_;
     uint8_t rxpin_;
     uint8_t txpin_;
 
-    byte displayBrightness_ = 100;
+    byte displayDayBrightness_ = 100;
+    const byte displayNightBrightness_ = 5;
     bool nightMode_ = false;
 
     bool autoNightMode_ = false;

@@ -5,15 +5,20 @@ DisplayTask::DisplayTask(const Tasks& tasks, const Config& config, HardwareSeria
 {
 }
 
-byte DisplayTask::getBrightness()
-{
-    return displayBrightness_;
-}
-
 void DisplayTask::setBrightness(byte newValue)
 {
-    displayBrightness_ = newValue;
-    display_.writeNum("dim", displayBrightness_);
+    display_.writeNum("dim", newValue);
+}
+
+byte DisplayTask::getDayBrightness()
+{
+    return displayDayBrightness_;
+}
+
+void DisplayTask::setDayBrightness(byte newValue)
+{
+    displayDayBrightness_ = newValue;
+    if (!getNightMode()) setBrightness(displayDayBrightness_);
 }
 
 void DisplayTask::setDayMode()
@@ -28,7 +33,7 @@ void DisplayTask::setDayMode()
     display_.writeNum("col_s3_txt", 65535);
     display_.writeNum("col_s4_bkg", 63495);
     display_.writeNum("col_s4_txt", 65535);
-    setBrightness(100);
+    setBrightness(displayDayBrightness_);
 }
 
 void DisplayTask::setNightMode()
@@ -43,7 +48,7 @@ void DisplayTask::setNightMode()
     display_.writeNum("col_s3_txt", 64512);
     display_.writeNum("col_s4_bkg", 0);
     display_.writeNum("col_s4_txt", 63495);
-    setBrightness(5);
+    setBrightness(displayNightBrightness_);
 }
 
 byte DisplayTask::getNightMode()
@@ -198,6 +203,23 @@ void DisplayTask::updateFromCFGParams()
     Serial.println(nightModeLuminanceHysteresis);
 #endif
 }
+
+void DisplayTask::enable(bool enable)
+{
+#if SERIAL_LOGS
+    Serial.print("Nextion: enabled status: ");
+    Serial.print(enable);
+    Serial.println();
+#endif
+
+    enabled_ = enable;
+    display_.writeNum("sleep", enabled_ ? 0 : 1);
+}
+
+ bool DisplayTask::enabled()
+ {
+    return enabled_;
+ }
 
 void DisplayTask::update()
 {

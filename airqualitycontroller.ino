@@ -64,13 +64,22 @@ DisplayTask displayTask(DisplayTask::Tasks{tempHumTask, tvocTask, co2Task, luxTa
 
 // need to use this due to ZUNO preprocessor behaviour
 
+byte getDisplayEnabled1()
+{
+    return displayTask.enabled();
+}
+void setDisplayEnabled1(byte value)
+{
+    return displayTask.enable(value);
+}
+
 byte getDisplayBrightness1()
 {
-    return displayTask.getBrightness();
+    return displayTask.getDayBrightness();
 }
 void setDisplayBrightness1(byte value)
 {
-    return displayTask.setBrightness(value);
+    return displayTask.setDayBrightness(value);
 }
 
 word getTemperature1()
@@ -105,7 +114,8 @@ void setNightMode1(byte newValue)
     displayTask.setNightMode(newValue);
 }
 
-ZUNO_SETUP_CHANNELS(ZUNO_SWITCH_MULTILEVEL(getDisplayBrightness1, setDisplayBrightness1),
+ZUNO_SETUP_CHANNELS(ZUNO_SWITCH_BINARY(getDisplayEnabled1, setDisplayEnabled1),
+                    ZUNO_SWITCH_MULTILEVEL(getDisplayBrightness1, setDisplayBrightness1),
                     ZUNO_SWITCH_BINARY(getDisplayNightMode1, setNightMode1),
                     ZUNO_SENSOR_MULTILEVEL_TEMPERATURE_2(getTemperature1),
                     ZUNO_SENSOR_MULTILEVEL_HUMIDITY_2(getHumidity1), ZUNO_SENSOR_MULTILEVEL_CO2_LEVEL_2(getCO21),
