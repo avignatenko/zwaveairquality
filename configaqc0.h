@@ -82,6 +82,10 @@ const uint8_t CO2_HD_PIN = 9;
 
 SerialEx& pm25Serial = SerialEx01;
 
+// CO
+
+SerialEx& coSerial = SerialEx02;
+
 // Display
 
 HardwareSerial& displaySerial = Serial1;

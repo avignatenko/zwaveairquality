@@ -5,6 +5,7 @@
 #include "lux.h"
 #include "nextion.h"
 #include "pm25.h"
+#include "co.h"
 #include "serialex.h"
 #include "temphum.h"
 #include "tvoc.h"
@@ -56,8 +57,9 @@ TVOCTask tvocTask(TVOC_PIN, CHANNEL_TVOC);
 CO2Task co2Task(co2Serial, CO2_HD_PIN, CHANNEL_CO2, CONFIG_CO2_START_CALIBRATION);
 LuxTask luxTask(luxSensor);
 PM25Task pm25Task(pm25Serial);
+COTask coTask(coSerial);
 
-DisplayTask displayTask(DisplayTask::Tasks{tempHumTask, tvocTask, co2Task, luxTask, pm25Task},
+DisplayTask displayTask(DisplayTask::Tasks{tempHumTask, tvocTask, co2Task, luxTask, pm25Task, coTask},
                         DisplayTask::Config{CONFIG_AUTO_NIGHT_MODE, CONFIG_NIGHT_MODE_LUMINANCE,
                                             CONFIG_NIGHT_MODE_HYSTERESIS},
                         displaySerial, DISPLAY_RX_PIN, DISPLAY_TX_PIN);
@@ -94,6 +96,12 @@ word getCO21()
 {
     return co2Task.getCO2();
 }
+
+word getCO()
+{
+    return coTask.getCO();
+}
+
 byte getTVOCPercent1()
 {
     return tvocTask.getPercent();
@@ -102,6 +110,16 @@ byte getTVOCPercent1()
 byte getPM2d5()
 {
     return pm25Task.getPM2d5();
+}
+
+byte getPM10()
+{
+    return pm25Task.getPM10();
+}
+
+byte getPM1d0()
+{
+    return pm25Task.getPM1d0();
 }
 
 byte getDisplayNightMode1()
@@ -118,9 +136,13 @@ ZUNO_SETUP_CHANNELS(ZUNO_SWITCH_BINARY(getDisplayEnabled1, setDisplayEnabled1),
                     ZUNO_SWITCH_MULTILEVEL(getDisplayBrightness1, setDisplayBrightness1),
                     ZUNO_SWITCH_BINARY(getDisplayNightMode1, setNightMode1),
                     ZUNO_SENSOR_MULTILEVEL_TEMPERATURE_2(getTemperature1),
-                    ZUNO_SENSOR_MULTILEVEL_HUMIDITY_2(getHumidity1), ZUNO_SENSOR_MULTILEVEL_CO2_LEVEL_2(getCO21),
+                    ZUNO_SENSOR_MULTILEVEL_HUMIDITY_2(getHumidity1), 
+                    ZUNO_SENSOR_MULTILEVEL_CO2_LEVEL_2(getCO21),
+                    ZUNO_SENSOR_MULTILEVEL_CO_LEVEL(getCO),
                     ZUNO_SENSOR_MULTILEVEL_GP_VOC_PERCENT(getTVOCPercent1),
-                    ZUNO_SENSOR_MULTILEVEL_GP_PM2_5_LEVEL(getPM2d5));
+                    ZUNO_SENSOR_MULTILEVEL_GP_PM2d5_LEVEL(getPM2d5),
+                    ZUNO_SENSOR_MULTILEVEL_GP_PM2d5_LEVEL(getPM10), // fixme: not supported yet?
+                    ZUNO_SENSOR_MULTILEVEL_GP_PM2d5_LEVEL(getPM1d0)); // fixme: not supported yet?
 
 ZUNO_SETUP_CONFIGPARAMETERS(ZUNO_CONFIG_PARAMETER("Temperature and humidity update period (sec)", 30, 86400, 1800),
                             ZUNO_CONFIG_PARAMETER_1B("Temperature update threshold", 1, 255, 2),
@@ -175,6 +197,7 @@ void setup()
     co2Task.setup();
     luxTask.setup();
     pm25Task.setup();
+    coTask.setup();
 }
 
 void loop()

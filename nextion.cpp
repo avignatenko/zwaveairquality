@@ -127,6 +127,13 @@ int co2ToSeverity(int co2)
     return 4;
 }
 
+int coToSeverity(float co)
+{
+    if (co < 10) return 1;
+    if (co < 30) return 2;
+    if (co < 100) return 3;
+    return 4;
+}
 int pm25ToSeverity(int pm25)
 {
     if (pm25 <= 30) return 1;
@@ -163,6 +170,12 @@ void DisplayTask::updatePM25Display()
 {
     display_.writeNum("pm25", tasks_.pm25.getPM2d5());
     display_.writeNum("pm25_severity", pm25ToSeverity(tasks_.pm25.getPM2d5()));
+}
+
+void DisplayTask::updateCODisplay()
+{
+    display_.writeNum("co", tasks_.co.getCO()  / 10.0);
+    display_.writeNum("co_severity", coToSeverity(tasks_.co.getCO() / 10.0));
 }
 
 void DisplayTask::updateNightMode()
@@ -216,10 +229,10 @@ void DisplayTask::enable(bool enable)
     display_.writeNum("sleep", enabled_ ? 0 : 1);
 }
 
- bool DisplayTask::enabled()
- {
+bool DisplayTask::enabled()
+{
     return enabled_;
- }
+}
 
 void DisplayTask::update()
 {
@@ -233,4 +246,5 @@ void DisplayTask::update()
     updateTVOCDisplay();
     updateCO2Display();
     updatePM25Display();
+    updateCODisplay();
 }
