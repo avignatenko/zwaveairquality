@@ -97,7 +97,7 @@ void DisplayTask::setup()
 
 int temperatureToSeverity(int temp)
 {
-    if (temp < 23) return 0;  // blue
+    if (temp < 22) return 0;  // blue
     if (temp < 25) return 1;  // green
     if (temp < 27) return 2;  // yellow
     return 4;                 // red, no amber
