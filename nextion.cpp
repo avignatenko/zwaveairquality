@@ -134,11 +134,12 @@ int coToSeverity(float co)
     if (co < 100) return 3;
     return 4;
 }
+
 int pm25ToSeverity(int pm25)
 {
-    if (pm25 <= 30) return 1;
-    if (pm25 <= 50) return 2;
-    if (pm25 <= 100) return 3;
+    if (pm25 <= 12) return 1;
+    if (pm25 <= 35) return 2;
+    if (pm25 <= 50) return 3;
     return 4;
 }
 
