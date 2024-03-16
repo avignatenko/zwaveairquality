@@ -1,6 +1,6 @@
 #include "co.h"
 
-COTask::COTask(SerialEx& serial) : Task(2000), serial_(serial) {}
+COTask::COTask(SerialEx& serial) : Task(5000), serial_(serial) {}
 
 unsigned char FucCheckSumCO(unsigned char* i, unsigned char ln)
 {
