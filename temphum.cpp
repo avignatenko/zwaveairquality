@@ -1,7 +1,7 @@
 #include "temphum.h"
 
 TempHumTask::TempHumTask(TempHumSensor& sensor, const Config& config, const Report& report)
-    : Task(2000), sensor_(sensor), config_(config), report_(report)
+    : Task(5000), sensor_(sensor), config_(config), report_(report)
 {
 }
 

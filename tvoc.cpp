@@ -1,6 +1,9 @@
 #include "tvoc.h"
 
-TVOCTask::TVOCTask(uint8_t pin, uint8_t tvocUpdateChannel) : Task(2000), pin_(pin), tvocUpdateChannel_(tvocUpdateChannel) {}
+TVOCTask::TVOCTask(uint8_t pin, uint8_t tvocUpdateChannel)
+    : Task(5000), pin_(pin), tvocUpdateChannel_(tvocUpdateChannel)
+{
+}
 
 void TVOCTask::setup()
 {

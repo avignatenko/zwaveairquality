@@ -1,7 +1,7 @@
 #include "pm25.h"
 
 PM25Task::PM25Task(SerialEx& serial, uint8_t reportChannel1, uint8_t reportChannel2, uint8_t reportChannel3)
-    : Task(2000),
+    : Task(5000),
       serial_(serial),
       reportChannel1_(reportChannel1),
       reportChannel2_(reportChannel2),
