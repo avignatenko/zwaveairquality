@@ -3,6 +3,7 @@
 #include "common.h"
 #include "serialex.h"
 #include "tasks.h"
+#include "winsenutils.h"
 
 class COTask : public Task
 {
@@ -20,17 +21,7 @@ protected:
 private:
     void setQAMode();
 
-    enum Reply
-    {
-        REPLY_OK = 0,
-        REPLY_NO_ANSWER,
-        REPLY_WRONG_LENGTH,
-        REPLY_WRONG_ID,
-        REPLY_WRONG_CHECKSUM,
-        REPLY_SENSOR_FAILED
-    };
-
-    Reply receiveData();
+    WinsenReply receiveData();
     void requestData();
 
 private:

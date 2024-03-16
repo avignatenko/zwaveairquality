@@ -1,5 +1,4 @@
 #include "co2.h"
-#include "winsenutils.h"
 
 CO2Task::CO2Task(SerialEx& serial, uint8_t pinHd, uint8_t reportChannel, uint8_t configChannel)
     : Task(2000), serial_(serial), pinHd_(pinHd), configChannel_(configChannel), reportChannel_(reportChannel)
@@ -114,56 +113,6 @@ bool CO2Task::updatePreheat()
     return true;  // still in pre-heat
 }
 
-void CO2Task::sendCommand(uint8_t command, uint8_t arg)
-{
-    HardwareSerial& serial = serial_.captureSerial();
-
-    // read everything which might stay there
-    while (serial.available()) serial.read();
-
-    // send data request
-    uint8_t bufferOut[9] = {0xFF, 0x01, command, arg, 0x00, 0x00, 0x00, 0x00, 0x00};
-    bufferOut[8] = getCheckSum(bufferOut);
-    serial.write(bufferOut, 9);
-}
-
-CO2Task::Reply CO2Task::readReply(uint8_t command, uint8_t bufferOut[6])
-{
-    HardwareSerial& serial = serial_.captureSerial();
-
-    // read co2 concentraction reply
-    uint8_t bufferIn[9];
-    byte read = serial.readBytes(bufferIn, 9);
-    if (read == 0) return REPLY_NO_ANSWER;
-
-    if (read != 9)
-    {
-        // read everything else
-        while (serial.available()) serial.read();
-
-        return REPLY_WRONG_LENGTH;
-    }
-
-    // parse answer
-
-    bool ok = true;
-    ok = ok && (bufferIn[0] == 0xFF);
-    ok = ok && (bufferIn[1] == command);
-
-    if (!ok) return REPLY_WRONG_ID;
-
-    ok = ok && (getCheckSum(bufferIn) == bufferIn[8]);
-
-    if (!ok) return REPLY_WRONG_CHECKSUM;
-
-    memcpy(bufferOut, bufferIn + 2, 6);
-
-    // read everything else just in case
-    while (serial.available()) serial.read();
-
-    return REPLY_OK;
-}
-
 void CO2Task::update(bool firstTime)
 {
     // return if still in pre-heat
@@ -181,13 +130,12 @@ void CO2Task::update(bool firstTime)
     }
 
     // Read CO2 concentration
-    const uint8_t READ_CO2_COMMAND = 0x86;
-    sendCommand(READ_CO2_COMMAND);
+    sendCommand(serial_, WINSEN_REQUEST_DATA_COMMAND);
 
     // read co2 concentraction reply
 
     uint8_t bufferIn[6];
-    Reply reply = readReply(READ_CO2_COMMAND, bufferIn);
+    WinsenReply reply = readReply(serial_, WINSEN_REQUEST_DATA_COMMAND, bufferIn);
 
     if (reply != REPLY_OK)
     {
@@ -211,7 +159,7 @@ void CO2Task::update(bool firstTime)
 void CO2Task::enableAutoCalibration(bool enable)
 {
     const uint8_t ENABLE_AUTO_CALIBRATION_COMMAND = 0x79;
-    sendCommand(ENABLE_AUTO_CALIBRATION_COMMAND, enable ? 0xA0 : 0x00);
+    sendCommand(serial_, ENABLE_AUTO_CALIBRATION_COMMAND, enable ? 0xA0 : 0x00);
 
 #if SERIAL_LOGS
     Serial.print("CO2: Sent auto calibration enable: ");

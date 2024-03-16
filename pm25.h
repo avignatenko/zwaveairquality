@@ -3,6 +3,8 @@
 #include "common.h"
 #include "serialex.h"
 #include "tasks.h"
+#include "winsenutils.h"
+
 
 class PM25Task : public Task
 {
@@ -21,16 +23,7 @@ protected:
 private:
     void setQAMode();
 
-    enum Reply
-    {
-        REPLY_OK = 0,
-        REPLY_NO_ANSWER,
-        REPLY_WRONG_LENGTH,
-        REPLY_WRONG_ID,
-        REPLY_WRONG_CHECKSUM
-    };
-
-    Reply receiveData();
+    WinsenReply receiveData();
     void requestData();
 
     void updateInternal(bool firstTime = false);

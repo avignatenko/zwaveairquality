@@ -4,6 +4,7 @@
 #include "tasks.h"
 
 #include "serialex.h"
+#include "winsenutils.h"
 
 class CO2Task : public Task
 {
@@ -26,18 +27,6 @@ protected:
 private:
     bool updateCalibration();
     bool updatePreheat();
-    void sendCommand(uint8_t command, uint8_t arg = 0x00);
-
-    enum Reply
-    {
-        REPLY_OK = 0,
-        REPLY_NO_ANSWER,
-        REPLY_WRONG_LENGTH,
-        REPLY_WRONG_ID,
-        REPLY_WRONG_CHECKSUM
-    };
-
-    Reply readReply(uint8_t command, uint8_t bufferOut[6]);
 
     void updateInternal(bool firstTime = false);
     void update(bool firstTime = false);

@@ -1,5 +1,4 @@
 #include "pm25.h"
-#include "winsenutils.h"
 
 PM25Task::PM25Task(SerialEx& serial, uint8_t reportChannel1, uint8_t reportChannel2, uint8_t reportChannel3)
     : Task(2000),
@@ -12,59 +11,18 @@ PM25Task::PM25Task(SerialEx& serial, uint8_t reportChannel1, uint8_t reportChann
 
 void PM25Task::requestData()
 {
-    HardwareSerial& serial = serial_.captureSerial();
-
-    // clear everything which stays in the buffer, be prepared to correct answer
-    while (serial.available()) serial.read();
-
-    byte buffer[9] = {0xff, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79};
-    for (int i = 0; i < 9; ++i) serial.write(buffer[i]);
+    sendCommand(serial_, WINSEN_REQUEST_DATA_COMMAND);
 }
 
-PM25Task::Reply PM25Task::receiveData()
+WinsenReply PM25Task::receiveData()
 {
-    HardwareSerial& serial = serial_.captureSerial();
+    uint8_t buffer[6];
+    WinsenReply reply = readReply(serial_, WINSEN_REQUEST_DATA_COMMAND, buffer);
+    if (reply != REPLY_OK) return reply;
 
-    uint8_t buffer[9];
-    int read = serial.readBytes(buffer, 9);
-    if (read == 0) return REPLY_NO_ANSWER;
-
-    if (read != 9)
-    {
-        // read everything else
-        while (serial.available()) serial.read();
-
-        return REPLY_WRONG_LENGTH;
-    }
-
-#if SERIAL_LOGS
-    Serial.print("PM2.5: Read bytes: ");
-
-    for (int i = 0; i < read; ++i)
-    {
-        Serial.print(buffer[i]);
-        Serial.print(" ");
-    }
-    Serial.println();
-#endif
-
-    bool ok = true;
-    ok = ok && (buffer[0] == 0xFF);
-    ok = ok && (buffer[1] == 0x86);
-    if (!ok) return REPLY_WRONG_ID;
-
-#if SERIAL_LOGS
-    Serial.print("PM2.5: Check ");
-    Serial.println(buffer[8]);
-#endif
-
-    ok = ok && (getCheckSum(buffer) == buffer[8]);
-
-    if (!ok) return REPLY_WRONG_CHECKSUM;
-
-    pm2d5_ = buffer[2] * 256 + buffer[3];
-    pm10_ = buffer[4] * 256 + buffer[5];
-    pm1d0_ = buffer[6] * 256 + buffer[7];
+    pm2d5_ = buffer[0] * 256 + buffer[1];
+    pm10_ = buffer[2] * 256 + buffer[3];
+    pm1d0_ = buffer[4] * 256 + buffer[5];
 
 #if SERIAL_LOGS
     Serial.print("PM2.5: PM2.5 ");
@@ -75,18 +33,12 @@ PM25Task::Reply PM25Task::receiveData()
     Serial.println(pm1d0_);
 #endif
 
-    // read everything else just in case
-    while (serial.available()) serial.read();
-
     return REPLY_OK;
 }
 
 void PM25Task::setQAMode()
 {
-    HardwareSerial& serial = serial_.captureSerial();
-
-    byte buffer[9] = {0xff, 0x01, 0x78, 0x41, 0x00, 0x00, 0x00, 0x00, 0x46};
-    for (int i = 0; i < 9; ++i) serial.write(buffer[i]);
+    sendCommand(serial_, WINSEN_SET_QAMODE_COMMAND, WINSEN_SET_QAMODE_COMMAND_ARG);
 }
 
 void PM25Task::setup()
@@ -135,7 +87,7 @@ void PM25Task::updateInternal(bool firstTime)
 void PM25Task::update(bool firstTime)
 {
     requestData();
-    Reply reply = receiveData();
+    WinsenReply reply = receiveData();
 
     if (reply != REPLY_OK)
     {

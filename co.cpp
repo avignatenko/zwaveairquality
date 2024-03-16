@@ -1,62 +1,20 @@
 #include "co.h"
-#include "winsenutils.h"
 
 COTask::COTask(SerialEx& serial) : Task(5000), serial_(serial) {}
 
 void COTask::requestData()
 {
-    HardwareSerial& serial = serial_.captureSerial();
-
-    // clear everything which stays in the buffer, be prepared to correct answer
-    while (serial.available()) serial.read();
-
-    byte buffer[9] = {0xff, 0x01, 0x86, 0x00, 0x00, 0x00, 0x00, 0x00, 0x79};
-    for (int i = 0; i < 9; ++i) serial.write(buffer[i]);
+    sendCommand(serial_, WINSEN_REQUEST_DATA_COMMAND);
 }
 
-COTask::Reply COTask::receiveData()
+WinsenReply COTask::receiveData()
 {
-    HardwareSerial& serial = serial_.captureSerial();
+    uint8_t buffer[6];
+    WinsenReply reply = readReply(serial_, WINSEN_REQUEST_DATA_COMMAND, buffer);
+    if (reply != REPLY_OK) return reply;
 
-    uint8_t buffer[9];
-    int read = serial.readBytes(buffer, 9);
-    if (read == 0) return REPLY_NO_ANSWER;
-
-    if (read != 9)
-    {
-        // read everything else
-        while (serial.available()) serial.read();
-
-        return REPLY_WRONG_LENGTH;
-    }
-
-#if SERIAL_LOGS
-    Serial.print("CO: Read bytes: ");
-
-    for (int i = 0; i < read; ++i)
-    {
-        Serial.print(buffer[i]);
-        Serial.print(" ");
-    }
-    Serial.println();
-#endif
-
-    bool ok = true;
-    ok = ok && (buffer[0] == 0xFF);
-    ok = ok && (buffer[1] == 0x86);
-    if (!ok) return REPLY_WRONG_ID;
-
-#if SERIAL_LOGS
-    Serial.print("CO: Check ");
-    Serial.println(buffer[8]);
-#endif
-
-    ok = ok && (getCheckSum(buffer) == buffer[8]);
-
-    if (!ok) return REPLY_WRONG_CHECKSUM;
-
-    uint8_t coHigh = buffer[2];
-    uint8_t coLow = buffer[3];
+    uint8_t coHigh = buffer[0];
+    uint8_t coLow = buffer[1];
 
     // check sensor failure
     bool failed = (coHigh >> 7);
@@ -76,18 +34,12 @@ COTask::Reply COTask::receiveData()
     Serial.println(co_);
 #endif
 
-    // read everything else just in case
-    while (serial.available()) serial.read();
-
     return REPLY_OK;
 }
 
 void COTask::setQAMode()
 {
-    HardwareSerial& serial = serial_.captureSerial();
-
-    byte buffer[9] = {0xff, 0x01, 0x78, 0x41, 0x00, 0x00, 0x00, 0x00, 0x46};
-    for (int i = 0; i < 9; ++i) serial.write(buffer[i]);
+    sendCommand(serial_, WINSEN_SET_QAMODE_COMMAND, WINSEN_SET_QAMODE_COMMAND_ARG);
 }
 
 void COTask::setup()
@@ -113,7 +65,7 @@ uint16_t COTask::getCO()
 void COTask::update()
 {
     requestData();
-    Reply reply = receiveData();
+    WinsenReply reply = receiveData();
 
     if (reply != REPLY_OK)
     {
