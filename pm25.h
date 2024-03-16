@@ -39,7 +39,7 @@ private:
 
     word pm2d5LastReported_ = 0;
     word pm2d5Interval_ = 60 * 20;  // 20 mins default, min 30 seconds
-    word pm2d5Threshold_ = 3;
+    word pm2d5Threshold_ = 5;
     unsigned long lastReportedTimePM2d5_ = 0;
 
     const uint8_t reportChannel1_;
