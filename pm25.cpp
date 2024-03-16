@@ -1,6 +1,13 @@
 #include "pm25.h"
 
-PM25Task::PM25Task(SerialEx& serial) : Task(2000), serial_(serial) {}
+PM25Task::PM25Task(SerialEx& serial, uint8_t reportChannel1, uint8_t reportChannel2, uint8_t reportChannel3)
+    : Task(2000),
+      serial_(serial),
+      reportChannel1_(reportChannel1),
+      reportChannel2_(reportChannel2),
+      reportChannel3_(reportChannel3)
+{
+}
 
 unsigned char FucCheckSum(unsigned char* i, unsigned char ln)
 {
@@ -107,6 +114,8 @@ void PM25Task::setup()
 #if SERIAL_LOGS
     Serial.println("PM2.5: setup end");
 #endif
+
+    updateInternal(true);
 }
 
 uint16_t PM25Task::getPM2d5()
@@ -126,6 +135,17 @@ uint16_t PM25Task::getPM1d0()
 
 void PM25Task::update()
 {
+    updateInternal();
+}
+
+void PM25Task::updateInternal(bool firstTime)
+{
+    update(firstTime);
+    reportUpdates(firstTime);
+}
+
+void PM25Task::update(bool firstTime)
+{
     requestData();
     Reply reply = receiveData();
 
@@ -139,4 +159,35 @@ void PM25Task::update()
         pm2d5_ = (uint16_t)~0 - (uint16_t)reply;
         return;
     }
+}
+
+bool PM25Task::reportUpdates(bool firstTime)
+{
+    if (pm2d5_ <= -1) return false;  // wrong value, let's skip it
+
+    unsigned long curMillis = millis();
+
+    bool reportPM2d5 = (abs(pm2d5_ - pm2d5LastReported_) > pm2d5Threshold_);
+    bool timePassedPM2d5 = (curMillis - lastReportedTimePM2d5_ > (unsigned long)pm2d5Interval_ * 1000);
+
+    if (firstTime || reportPM2d5 || timePassedPM2d5)
+    {
+        zunoSendReport(reportChannel1_);
+        zunoSendReport(reportChannel2_);
+        zunoSendReport(reportChannel3_);
+        pm2d5LastReported_ = pm2d5_;
+        lastReportedTimePM2d5_ = curMillis;
+
+#if SERIAL_LOGS
+        Serial.print("PM2.5: update sent, because: ");
+        Serial.print(reportPM2d5);
+        Serial.print(" ");
+        Serial.print(timePassedPM2d5);
+        Serial.println();
+#endif
+
+        return true;
+    }
+
+    return false;
 }

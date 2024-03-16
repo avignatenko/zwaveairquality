@@ -56,7 +56,7 @@ TempHumTask tempHumTask(sensor,
 TVOCTask tvocTask(TVOC_PIN, CHANNEL_TVOC);
 CO2Task co2Task(co2Serial, CO2_HD_PIN, CHANNEL_CO2, CONFIG_CO2_START_CALIBRATION);
 LuxTask luxTask(luxSensor);
-PM25Task pm25Task(pm25Serial);
+PM25Task pm25Task(pm25Serial, CHANNEL_PM2_5, CHANNEL_PM10, CHANNEL_PM1d0);
 COTask coTask(coSerial);
 
 DisplayTask displayTask(DisplayTask::Tasks{tempHumTask, tvocTask, co2Task, luxTask, pm25Task, coTask},
