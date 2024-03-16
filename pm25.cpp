@@ -1,4 +1,5 @@
 #include "pm25.h"
+#include "winsenutils.h"
 
 PM25Task::PM25Task(SerialEx& serial, uint8_t reportChannel1, uint8_t reportChannel2, uint8_t reportChannel3)
     : Task(2000),
@@ -7,19 +8,6 @@ PM25Task::PM25Task(SerialEx& serial, uint8_t reportChannel1, uint8_t reportChann
       reportChannel2_(reportChannel2),
       reportChannel3_(reportChannel3)
 {
-}
-
-unsigned char FucCheckSum(unsigned char* i, unsigned char ln)
-{
-    unsigned char j, tempq = 0;
-    i += 1;
-    for (j = 0; j < (ln - 2); j++)
-    {
-        tempq += *i;
-        i++;
-    }
-    tempq = (~tempq) + 1;
-    return (tempq);
 }
 
 void PM25Task::requestData()
@@ -70,7 +58,7 @@ PM25Task::Reply PM25Task::receiveData()
     Serial.println(buffer[8]);
 #endif
 
-    ok = ok && (FucCheckSum(buffer, 9) == buffer[8]);
+    ok = ok && (getCheckSum(buffer) == buffer[8]);
 
     if (!ok) return REPLY_WRONG_CHECKSUM;
 

@@ -1,5 +1,5 @@
-
 #include "co2.h"
+#include "winsenutils.h"
 
 CO2Task::CO2Task(SerialEx& serial, uint8_t pinHd, uint8_t reportChannel, uint8_t configChannel)
     : Task(2000), serial_(serial), pinHd_(pinHd), configChannel_(configChannel), reportChannel_(reportChannel)
@@ -37,17 +37,6 @@ void CO2Task::setup()
     enableAutoCalibration(false);
 
     updateInternal(true);
-}
-
-char getCheckSum(uint8_t* packet)
-{
-    uint8_t checksum = 0;
-
-    for (uint8_t i = 1; i < 8; i++) checksum += packet[i];
-
-    checksum = 0xff - checksum;
-    checksum = checksum + 1;
-    return checksum;
 }
 
 void CO2Task::triggerCalibration()

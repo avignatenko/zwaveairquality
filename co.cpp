@@ -1,19 +1,7 @@
 #include "co.h"
+#include "winsenutils.h"
 
 COTask::COTask(SerialEx& serial) : Task(5000), serial_(serial) {}
-
-unsigned char FucCheckSumCO(unsigned char* i, unsigned char ln)
-{
-    unsigned char j, tempq = 0;
-    i += 1;
-    for (j = 0; j < (ln - 2); j++)
-    {
-        tempq += *i;
-        i++;
-    }
-    tempq = (~tempq) + 1;
-    return (tempq);
-}
 
 void COTask::requestData()
 {
@@ -63,7 +51,7 @@ COTask::Reply COTask::receiveData()
     Serial.println(buffer[8]);
 #endif
 
-    ok = ok && (FucCheckSumCO(buffer, 9) == buffer[8]);
+    ok = ok && (getCheckSum(buffer) == buffer[8]);
 
     if (!ok) return REPLY_WRONG_CHECKSUM;
 
