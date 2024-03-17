@@ -5,7 +5,6 @@
 #include "tasks.h"
 #include "winsenutils.h"
 
-
 class PM25Task : public Task
 {
 public:
@@ -30,6 +29,8 @@ private:
     void update(bool firstTime = false);
     bool reportUpdates(bool firstTime = false);
 
+   bool updatePreheat();
+
 private:
     SerialEx& serial_;
 
@@ -45,4 +46,8 @@ private:
     const uint8_t reportChannel1_;
     const uint8_t reportChannel2_;
     const uint8_t reportChannel3_;
+
+    const int PREHEAT_DURATION = 60 * 1000;  // 1 min
+    bool preheat_ = false;
+    dword preheatStartedTime_ = 0;
 };

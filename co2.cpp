@@ -186,7 +186,8 @@ bool CO2Task::reportUpdates(bool firstTime)
 
     if (firstTime || reportCO2 || timePassedCO2)
     {
-        zunoSendReport(reportChannel_);
+        // during pre-heat pretend we sent the report. FIXME
+        if (!preheat_) zunoSendReport(reportChannel_);
         co2LastReported_ = co2_;
         lastReportedTimeCO2_ = curMillis;
 

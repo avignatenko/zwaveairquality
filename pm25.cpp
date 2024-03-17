@@ -51,11 +51,15 @@ void PM25Task::setup()
 
     setQAMode();
 
+    // enable pre-heat
+    preheat_ = true;
+    preheatStartedTime_ = millis();
+
+    updateInternal(true);
+
 #if SERIAL_LOGS
     Serial.println("PM2.5: setup end");
 #endif
-
-    updateInternal(true);
 }
 
 uint16_t PM25Task::getPM2d5()
@@ -86,6 +90,12 @@ void PM25Task::updateInternal(bool firstTime)
 
 void PM25Task::update(bool firstTime)
 {
+    // return if still in pre-heat
+    if (updatePreheat())
+    {
+        return;
+    }
+
     requestData();
     WinsenReply reply = receiveData();
 
@@ -112,9 +122,13 @@ bool PM25Task::reportUpdates(bool firstTime)
 
     if (firstTime || reportPM2d5 || timePassedPM2d5)
     {
-        zunoSendReport(reportChannel1_);
-        zunoSendReport(reportChannel2_);
-        zunoSendReport(reportChannel3_);
+        // during pre-heat pretend we sent the report. FIXME
+        if (!preheat_)
+        {
+            zunoSendReport(reportChannel1_);
+            zunoSendReport(reportChannel2_);
+            zunoSendReport(reportChannel3_);
+        }
         pm2d5LastReported_ = pm2d5_;
         lastReportedTimePM2d5_ = curMillis;
 
@@ -130,4 +144,31 @@ bool PM25Task::reportUpdates(bool firstTime)
     }
 
     return false;
+}
+
+// returns true if still in pre-heat
+bool PM25Task::updatePreheat()
+{
+    if (!preheat_) return false;
+
+    dword curPreheatDuration = millis() - preheatStartedTime_;
+
+    if (curPreheatDuration > PREHEAT_DURATION)
+    {
+#if SERIAL_LOGS
+        Serial.println("PM2.5: Preheat finished");
+#endif
+        preheat_ = false;
+        preheatStartedTime_ = 0;
+
+        return false;
+    }
+
+#if SERIAL_LOGS
+    Serial.println("PM2.5: No PM value, in preheat");
+    Serial.print("PM2.5: Preheat remaining: ");
+    Serial.println(PREHEAT_DURATION - curPreheatDuration);
+#endif
+
+    return true;  // still in pre-heat
 }
