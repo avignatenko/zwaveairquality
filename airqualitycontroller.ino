@@ -107,17 +107,17 @@ byte getTVOCPercent1()
     return tvocTask.getPercent();
 }
 
-byte getPM2d5()
+word getPM2d5()
 {
     return pm25Task.getPM2d5();
 }
 
-byte getPM10()
+word getPM10()
 {
     return pm25Task.getPM10();
 }
 
-byte getPM1d0()
+word getPM1d0()
 {
     return pm25Task.getPM1d0();
 }
