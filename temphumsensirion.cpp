@@ -39,14 +39,21 @@ void SensirionSensor::update()
     {
         humidity_ = sht_.getHumidity();
         temperature_ = sht_.getTemperature();
+
+        errorsNum_ = 0;
     }
     else
     {
-        humidity_ = -100;
-        temperature_ = -100;
+        ++errorsNum_;
 
+        if (errorsNum_ > ReportErrorThreshold)
+        {
+            humidity_ = -100;
+            temperature_ = -100;
+        }
 #if SERIAL_LOGS
-        Serial.println("SHT: Read Error!");
+        Serial.print("SHT: Read Error! Errors: ");
+        Serial.println(errorsNum_);
 #endif
     }
 }

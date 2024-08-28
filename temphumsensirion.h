@@ -26,6 +26,9 @@ private:
     TwoWire& wire_;
     SHTSensor sht_;
 
+    int errorsNum_ = 0;
     float humidity_ = 0;
     float temperature_ = 0;
+
+    const int ReportErrorThreshold = 5;
 };
