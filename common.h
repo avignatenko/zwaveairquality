@@ -2,7 +2,7 @@
 
 #include "Arduino.h"
 
-#define SERIAL_LOGS 1
+#define SERIAL_LOGS 0
 
 #define ZUNO_SENSOR_MULTILEVEL_TEMPERATURE_2(GETTER)                                                 \
     ZUNO_SENSOR_MULTILEVEL(ZUNO_SENSOR_MULTILEVEL_TYPE_TEMPERATURE, SENSOR_MULTILEVEL_SCALE_CELSIUS, \
