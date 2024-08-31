@@ -148,7 +148,7 @@ ZUNO_SETUP_CONFIGPARAMETERS(ZUNO_CONFIG_PARAMETER("Temperature and humidity upda
                             ZUNO_CONFIG_PARAMETER_1B("Temperature update threshold", 1, 255, 2),
                             ZUNO_CONFIG_PARAMETER_1B("Humidity update threshold", 1, 255, 5),
                             ZUNO_CONFIG_PARAMETER_1B("Temperature correction (deg * 10 + 100)", 0, 200, 100),
-                            ZUNO_CONFIG_PARAMETER_1B("Humidity correction (% * 10 + 100)", 0, 200, 100),
+                            ZUNO_CONFIG_PARAMETER_1B("Humidity correction (% * 5 + 100)", 0, 200, 100),
                             ZUNO_CONFIG_PARAMETER_1B("Trigger CO2 calibration (set to 1)", 0, 1, 0),
                             ZUNO_CONFIG_PARAMETER_1B("Auto night mode (set to 1)", 0, 1, 0),
                             ZUNO_CONFIG_PARAMETER_1B("Night mode luminance (lux)", 0, 100, 10),

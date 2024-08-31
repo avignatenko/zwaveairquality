@@ -22,6 +22,8 @@ void SensirionSensor::setup()
     {
 #if SERIAL_LOGS
         Serial.println("SHT: init success");
+        Serial.print("Found sensor: ");
+        Serial.println(sht_.mSensorType);
 #endif
     }
     else
@@ -30,7 +32,6 @@ void SensirionSensor::setup()
         Serial.println("SHT: init failed");
 #endif
     }
-    sht_.setAccuracy(SHTSensor::SHT_ACCURACY_MEDIUM);  // only supported by SHT3x
 }
 
 void SensirionSensor::update()

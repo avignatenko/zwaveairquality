@@ -14,13 +14,13 @@ void TempHumTask::setup()
 // returns temp (degrees Celcius) * 10 as two bytes
 word TempHumTask::getTemperature()
 {
-    return round(sensor_.getTemperatureInternal() * 10) + (tempCorrect_ - 100);
+    return round((sensor_.getTemperatureInternal() + (tempCorrect_ - 100) / 10.0) * 10);
 }
 
 // returns humidity (percent) * 10 as two bytes
 word TempHumTask::getHumidity()
 {
-    return round(sensor_.getHumidityInternal() * 10) + (humCorrect_ - 100);
+    return round((sensor_.getHumidityInternal() + (humCorrect_ - 100) / 5.0) * 10);
 }
 
 bool TempHumTask::reportTempUpdates(bool firstTime)
@@ -101,8 +101,8 @@ bool TempHumTask::reportHumUpdates(bool firstTime)
 
 void TempHumTask::updateTempHumFromCFGParams()
 {
-#if SERIAL_LOGS 
-   Serial.println("TempHum: update config started");
+#if SERIAL_LOGS
+    Serial.println("TempHum: update config started");
 #endif
     tempHumInterval_ = zunoLoadCFGParam(config_.tempHumIntervalChannel);
     tempThreshold_ = zunoLoadCFGParam(config_.tempThresholdChannel);
