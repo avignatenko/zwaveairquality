@@ -2,17 +2,7 @@
 
 #include "Wire.h"
 
-// choose temp & humidity sensor
-#define SENSIRION_DHT_SENSOR 1
-// #define DHT22_SENSOR 1
-
-#ifdef SENSIRION_DHT_SENSOR
 TwoWire& dhtWire = Wire0;
-#endif
-
-#ifdef DHT22_SENSOR
-const uint8_t DHT22_PIN = 17;
-#endif
 
 enum
 {

@@ -1,29 +1,30 @@
 #include "temphum.h"
 
-TempHumTask::TempHumTask(TempHumSensor& sensor, const Config& config, const Report& report)
-    : Task(5000), sensor_(sensor), config_(config), report_(report)
+TempHum::TempHum(TempHumSensor& sensor, const Config& config, const Report& report)
+    : sensor_(sensor), config_(config), report_(report)
 {
 }
 
-void TempHumTask::setup()
+void TempHum::setup(bool firstTimeUpdate)
 {
     sensor_.setup();
-    updateInternal(true);  // first time update
+    updateTempHumFromCFGParams();
+    if (firstTimeUpdate) updateInternal(true);  // first time update
 }
 
 // returns temp (degrees Celcius) * 10 as two bytes
-word TempHumTask::getTemperature()
+word TempHum::getTemperature()
 {
     return round((sensor_.getTemperatureInternal() + (tempCorrect_ - 100) / 10.0) * 10);
 }
 
 // returns humidity (percent) * 10 as two bytes
-word TempHumTask::getHumidity()
+word TempHum::getHumidity()
 {
     return round((sensor_.getHumidityInternal() + (humCorrect_ - 100) / 5.0) * 10);
 }
 
-bool TempHumTask::reportTempUpdates(bool firstTime)
+bool TempHum::reportTempUpdates(bool firstTime)
 {
     unsigned long curMillis = millis();
 
@@ -61,7 +62,7 @@ bool TempHumTask::reportTempUpdates(bool firstTime)
     return false;
 }
 
-bool TempHumTask::reportHumUpdates(bool firstTime)
+bool TempHum::reportHumUpdates(bool firstTime)
 {
 #if SERIAL_LOGS
     Serial.print("Hum: ");
@@ -99,7 +100,7 @@ bool TempHumTask::reportHumUpdates(bool firstTime)
     return false;
 }
 
-void TempHumTask::updateTempHumFromCFGParams()
+void TempHum::updateTempHumFromCFGParams()
 {
 #if SERIAL_LOGS
     Serial.println("TempHum: update config started");
@@ -111,19 +112,28 @@ void TempHumTask::updateTempHumFromCFGParams()
     humCorrect_ = zunoLoadCFGParam(config_.humCorrectChannel);
 }
 
-void TempHumTask::updateInternal(bool firstTime)
+void TempHum::updateSensorValues()
+{
+    sensor_.update();
+}
+
+void TempHum::reportUpdates(bool firstTime)
+{
+    reportTempUpdates(firstTime);
+    reportHumUpdates(firstTime);
+}
+
+void TempHum::updateInternal(bool firstTime)
 {
 #if SERIAL_LOGS
     Serial.println("TempHum: update started");
 #endif
 
-    sensor_.update();
-
-    reportTempUpdates(firstTime);
-    reportHumUpdates(firstTime);
+    updateSensorValues();
+    reportUpdates(firstTime);
 }
 
-void TempHumTask::update()
+void TempHum::update()
 {
     updateInternal();
 }

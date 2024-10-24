@@ -7,7 +7,7 @@
 #include "co2.h"
 #include "lux.h"
 #include "pm25.h"
-#include "temphum.h"
+#include "temphumtask.h"
 #include "tvoc.h"
 
 #include "EasyNextionLibrary.h"

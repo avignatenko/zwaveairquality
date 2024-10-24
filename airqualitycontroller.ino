@@ -7,7 +7,7 @@
 #include "pm25.h"
 #include "co.h"
 #include "serialex.h"
-#include "temphum.h"
+#include "temphumtask.h"
 #include "tvoc.h"
 
 #include "Tasks.h"
@@ -48,10 +48,10 @@ LuxTEMT6000 luxSensor(TEMT6000_PIN);
 #endif
 
 TempHumTask tempHumTask(sensor,
-                        TempHumTask::Config{CONFIG_TEMPERATURE_HUMIDITY_INTERVAL_SEC,
+                        TempHum::Config{CONFIG_TEMPERATURE_HUMIDITY_INTERVAL_SEC,
                                             CONFIG_TEMPERATURE_THRESHOLD_DEGREES, CONFIG_HUMIDITY_THRESHOLD_PERCENT,
                                             CONFIG_TEMPERATURE_CORRECTION_DEGREES, CONFIG_HUMIDITY_CORRECTION_PERCENT},
-                        TempHumTask::Report{CHANNEL_TEMPERATURE, CHANNEL_HUMIDITY});
+                        TempHum::Report{CHANNEL_TEMPERATURE, CHANNEL_HUMIDITY});
 
 TVOCTask tvocTask(TVOC_PIN, CHANNEL_TVOC);
 CO2Task co2Task(co2Serial, CO2_HD_PIN, CHANNEL_CO2, CONFIG_CO2_START_CALIBRATION);

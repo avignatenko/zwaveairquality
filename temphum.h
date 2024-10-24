@@ -1,10 +1,9 @@
 #pragma once
 
 #include "common.h"
-#include "tasks.h"
 #include "temphumsensor.h"
 
-class TempHumTask : public Task
+class TempHum
 {
 public:
     struct Config
@@ -18,12 +17,11 @@ public:
 
     struct Report
     {
-
         uint8_t tempReportChannel;
         uint8_t humReportChannel;
     };
 
-    TempHumTask(TempHumSensor& sensor, const Config& config, const Report& report);
+    TempHum(TempHumSensor& sensor, const Config& config, const Report& report);
 
     // returns temp (degrees Celcius) * 10 as two bytes
     word getTemperature();
@@ -32,10 +30,11 @@ public:
 
     void updateTempHumFromCFGParams();
 
-    void setup();
+    void setup(bool firstTimeUpdate = true);
+    void update();
 
-protected:
-    void update() override;
+    void updateSensorValues();
+    void reportUpdates(bool firstTime = false);
 
 private:
     bool reportTempUpdates(bool firstTime = false);
@@ -59,3 +58,4 @@ private:
 
     word tempHumInterval_ = 60 * 20;  // 20 mins default, min 30 seconds
 };
+
