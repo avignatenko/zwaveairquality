@@ -104,7 +104,7 @@ void TempHumTask::updateTempHumFromCFGParams()
 #if SERIAL_LOGS
     Serial.println("TempHum: update config started");
 #endif
-    tempHumInterval_ = zunoLoadCFGParam(config_.tempHumIntervalChannel);
+    tempHumInterval_ = config_.tempHumIntervalChannel > 0 ? zunoLoadCFGParam(config_.tempHumIntervalChannel) : 0;
     tempThreshold_ = zunoLoadCFGParam(config_.tempThresholdChannel);
     humThreshold_ = zunoLoadCFGParam(config_.humThresholdChannel);
     tempCorrect_ = zunoLoadCFGParam(config_.tempCorrectChannel);

@@ -14,7 +14,7 @@
 #include "common.h"
 #include "configaqc0.h"
 
-ZUNO_ENABLE(MODERN_MULTICHANNEL);  // No clusters, the first channel is mapped to NIF only
+ZUNO_ENABLE(MODERN_MULTICHANNEL MODERN_MULTICHANNEL_S2);  // No clusters, the first channel is mapped to NIF only
 
 SerialData serialData0(SERIAL_MULTIPLEXOR_S0_PIN, SERIAL_MULTIPLEXOR_S1_PIN, multiplexorSerial, SERIAL_MULTIPLEXOR_RX_PIN, SERIAL_MULTIPLEXOR_TX_PIN);
 
