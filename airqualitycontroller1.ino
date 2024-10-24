@@ -30,9 +30,12 @@ void updateFromCFGParams() {}
 
 void setupI2C()
 {
-    Serial.print("Main: wire init start");
+#if SERIAL_LOGS
+    Serial.println("Main: wire init start");
+#endif
 
     int result = Wire.begin(0, WIRE_0_SCL_PIN, WIRE_0_SDA_PIN);
+
 #if SERIAL_LOGS
     Serial.print("Main: wire init done: ");
     Serial.println(result);
@@ -69,19 +72,23 @@ void setup()
     s_temperature = tempHum.getTemperature();
     s_humidity = tempHum.getHumidity();
 
-    tempHum.reportUpdates(true); // force update
+    tempHum.reportUpdates(true);  // force update
 
     // turn off sht
     digitalWrite(SHT_POWER_PIN, LOW);
 
     zunoSendWakeUpNotification();
-
-    zunoSendDeviceToSleep(SLEEP_MODE);  // This just says I am ready but it doesn't stop usercode momentally &
-    // completely User sleep latch is opened
-
-#if SERIAL_LOGS
-    Serial.print("Going to sleep");
-#endif
 }
 
-void loop() {}
+void loop()
+{
+    if (zunoIsSleepLocked())
+    {
+        zunoSendDeviceToSleep(SLEEP_MODE);  // This just says I am ready but it doesn't stop usercode momentally &
+                                            // completely User sleep latch is opened
+
+#if SERIAL_LOGS
+        Serial.print("Going to sleep");
+#endif
+    }
+}
