@@ -171,7 +171,9 @@ ZUNO_SETUP_CFGPARAMETER_HANDLER(configParameterChanged);
 
 void setupI2C()
 {
-    Serial.print("Main: wire init start");
+#if SERIAL_LOGS
+    Serial.println("Main: wire init start");
+#endif
 
     int result = Wire.begin(0, WIRE_0_SCL_PIN, WIRE_0_SDA_PIN);
 #if SERIAL_LOGS
