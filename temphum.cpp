@@ -1,8 +1,35 @@
 #include "temphum.h"
+#include "EEPROM.h"
 
-TempHum::TempHum(TempHumSensor& sensor, const Config& config, const Report& report)
-    : sensor_(sensor), config_(config), report_(report)
+word TempHum::getTemperatureFromStorage(const StorageAddr& addr)
 {
+    dword buffer;
+    EEPROM.get(addr.tempAddr, &buffer, sizeof(dword));
+    return buffer;
+}
+
+word TempHum::getHumidityFromStorage(const StorageAddr& addr)
+{
+    dword buffer;
+    EEPROM.get(addr.humAddr, &buffer, sizeof(dword));
+    return buffer;
+}
+
+TempHum::TempHum(TempHumSensor& sensor, const Config& config, const Report& report, const StorageAddr* storageAddr)
+    : sensor_(sensor), config_(config), report_(report), storageAddr_(storageAddr)
+{
+    if (storageAddr_)
+    {
+        temperatureLastReported_ = getTemperatureFromStorage(*storageAddr_);
+        humidityLastReported_ = getHumidityFromStorage(*storageAddr_);
+
+#if SERIAL_LOGS
+        Serial.print("Read defaults from EEPRO: ");
+        Serial.print(temperatureLastReported_);
+        Serial.print(" ");
+        Serial.println(humidityLastReported_);
+#endif
+    }
 }
 
 void TempHum::setup(bool firstTimeUpdate)
@@ -40,7 +67,9 @@ bool TempHum::reportTempUpdates(bool firstTime)
 #endif
 
     bool reportTemperature = (abs(getTemperature() - temperatureLastReported_) > tempThreshold_);
-    bool timePassedTemperature = (curMillis - lastReportedTimeTemperature_ > (unsigned long)tempHumInterval_ * 1000);
+    bool timePassedTemperature =
+        tempHumInterval_ > 0 ? (curMillis - lastReportedTimeTemperature_ > (unsigned long)tempHumInterval_ * 1000)
+                             : false;
 
     if (firstTime || reportTemperature || timePassedTemperature)
     {
@@ -50,18 +79,20 @@ bool TempHum::reportTempUpdates(bool firstTime)
 
 #if SERIAL_LOGS
         Serial.print("Temp: update sent, because: ");
+        Serial.print(firstTime);
+        Serial.print(" ");
         Serial.print(reportTemperature);
         Serial.print(" ");
         Serial.print(timePassedTemperature);
         Serial.println();
 #endif
 
+        if (storageAddr_) EEPROM.put(storageAddr_->tempAddr, &temperatureLastReported_, sizeof(dword));
         return true;
     }
 
     return false;
 }
-
 bool TempHum::reportHumUpdates(bool firstTime)
 {
 #if SERIAL_LOGS
@@ -78,7 +109,8 @@ bool TempHum::reportHumUpdates(bool firstTime)
     unsigned long curMillis = millis();
 
     bool reportHumidity = (abs(getHumidity() - humidityLastReported_) > humThreshold_);
-    bool timePassedHumidity = (curMillis - lastReportedTimeHumidity_ > (unsigned long)tempHumInterval_ * 1000);
+    bool timePassedHumidity =
+        tempHumInterval_ > 0 ? (curMillis - lastReportedTimeHumidity_ > (unsigned long)tempHumInterval_ * 1000) : false;
 
     if (firstTime || reportHumidity || timePassedHumidity)
     {
@@ -88,12 +120,15 @@ bool TempHum::reportHumUpdates(bool firstTime)
 
 #if SERIAL_LOGS
         Serial.print("Hum: update sent, because: ");
+        Serial.print(firstTime);
+        Serial.print(" ");
         Serial.print(reportHumidity);
         Serial.print(" ");
         Serial.print(timePassedHumidity);
         Serial.println();
 #endif
 
+        if (storageAddr_) EEPROM.put(storageAddr_->humAddr, &humidityLastReported_, sizeof(dword));
         return true;
     }
 
@@ -117,10 +152,11 @@ void TempHum::updateSensorValues()
     sensor_.update();
 }
 
-void TempHum::reportUpdates(bool firstTime)
+bool TempHum::reportUpdates(bool firstTime)
 {
-    reportTempUpdates(firstTime);
-    reportHumUpdates(firstTime);
+    bool reportedTemp = reportTempUpdates(firstTime);
+    bool reportedHum = reportHumUpdates(firstTime);
+    return reportedHum || reportedHum;
 }
 
 void TempHum::updateInternal(bool firstTime)

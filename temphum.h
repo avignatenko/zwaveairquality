@@ -21,20 +21,29 @@ public:
         uint8_t humReportChannel;
     };
 
-    TempHum(TempHumSensor& sensor, const Config& config, const Report& report);
+    struct StorageAddr
+    {
+        dword tempAddr;
+        dword humAddr;
+    };
+
+    TempHum(TempHumSensor& sensor, const Config& config, const Report& report, const StorageAddr* eeprom);
 
     // returns temp (degrees Celcius) * 10 as two bytes
     word getTemperature();
     // returns humidity (percent) * 10 as two bytes
     word getHumidity();
 
+    static word getTemperatureFromStorage(const StorageAddr& addr);
+    static word getHumidityFromStorage(const StorageAddr& addr);
+    
     void updateTempHumFromCFGParams();
 
     void setup(bool firstTimeUpdate = true);
     void update();
 
     void updateSensorValues();
-    void reportUpdates(bool firstTime = false);
+    bool reportUpdates(bool firstTime = false);
 
 private:
     bool reportTempUpdates(bool firstTime = false);
@@ -57,5 +66,7 @@ private:
     word tempCorrect_ = 0;
 
     word tempHumInterval_ = 60 * 20;  // 20 mins default, min 30 seconds
+
+    const StorageAddr* storageAddr_ = nullptr;
 };
 

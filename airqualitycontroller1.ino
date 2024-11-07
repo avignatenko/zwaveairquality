@@ -1,6 +1,6 @@
 
-ZUNO_ENABLE(MODERN_MULTICHANNEL MODERN_MULTICHANNEL_S2
-                MODERN_MULTICHANNEL_S2_ALWAYS);  // No clusters, the first channel is mapped to NIF only
+// ZUNO_ENABLE(MODERN_MULTICHANNEL MODERN_MULTICHANNEL_S2
+//                 MODERN_MULTICHANNEL_S2_ALWAYS);  // No clusters, the first channel is mapped to NIF only
 
 #include "configaqc1.h"
 
@@ -12,21 +12,31 @@ ZUNO_ENABLE(MODERN_MULTICHANNEL MODERN_MULTICHANNEL_S2
 // need to use this due to ZUNO preprocessor behaviour
 
 byte dummyVar = 0;
-word s_temperature = 0;
-word s_humidity = 0;
 
-ZUNO_SETUP_CHANNELS(ZUNO_SWITCH_BINARY(dummyVar, NULL), ZUNO_SENSOR_MULTILEVEL_TEMPERATURE_2(s_temperature),
-                    ZUNO_SENSOR_MULTILEVEL_HUMIDITY_2(s_humidity));
+// ZUNO_ENABLE(LOGGING_DBG LOGGING_UART=Serial);
+
+TempHum::StorageAddr s_addr{0, 0 + sizeof(dword)};
+bool needUpdateSensors = false;
+
+dword getTemperature()
+{
+    return TempHum::getTemperatureFromStorage(s_addr);
+}
+
+dword getHumidity()
+{
+    return TempHum::getHumidityFromStorage(s_addr);
+}
+
+ZUNO_SETUP_SLEEPING_MODE(ZUNO_SLEEPING_MODE_SLEEPING);  // It's sleeping device
+
+ZUNO_SETUP_CHANNELS(ZUNO_SWITCH_BINARY(dummyVar, NULL), ZUNO_SENSOR_MULTILEVEL_TEMPERATURE_2(getTemperature()),
+                    ZUNO_SENSOR_MULTILEVEL_HUMIDITY_2(getHumidity()));
 
 ZUNO_SETUP_CONFIGPARAMETERS(ZUNO_CONFIG_PARAMETER_1B("Temperature update threshold", 1, 255, 2),
                             ZUNO_CONFIG_PARAMETER_1B("Humidity update threshold", 1, 255, 5),
                             ZUNO_CONFIG_PARAMETER_1B("Temperature correction (deg * 10 + 100)", 0, 200, 100),
                             ZUNO_CONFIG_PARAMETER_1B("Humidity correction (% * 10 + 100)", 0, 200, 100));
-
-#define SLEEP_MODE SLEEP_MODE_EM4                       // You can select from SLEEP_MODE_EM2, SLEEP_MODE_EM4
-ZUNO_SETUP_SLEEPING_MODE(ZUNO_SLEEPING_MODE_SLEEPING);  // It's sleeping device
-
-void updateFromCFGParams() {}
 
 void setupI2C()
 {
@@ -42,15 +52,8 @@ void setupI2C()
 #endif
 }
 
-void setup()
+void initAndReport(bool firstTime = false)
 {
-#if SERIAL_LOGS
-    Serial.begin(115200);
-
-    Serial.print("Main: wakeup reason:");
-    Serial.println(zunoGetWakeReason(), HEX);
-#endif
-
     // send power to SHT sensor
     pinMode(SHT_POWER_PIN, OUTPUT);
     digitalWrite(SHT_POWER_PIN, HIGH);
@@ -64,31 +67,90 @@ void setup()
     TempHum tempHum(sensor,
                     TempHum::Config{0, CONFIG_TEMPERATURE_THRESHOLD_DEGREES, CONFIG_HUMIDITY_THRESHOLD_PERCENT,
                                     CONFIG_TEMPERATURE_CORRECTION_DEGREES, CONFIG_HUMIDITY_CORRECTION_PERCENT},
-                    TempHum::Report{CHANNEL_TEMPERATURE, CHANNEL_HUMIDITY});
+                    TempHum::Report{CHANNEL_TEMPERATURE, CHANNEL_HUMIDITY}, &s_addr);
 
     tempHum.setup(false);  // this will also update values, but no report
+
     tempHum.updateSensorValues();
 
-    s_temperature = tempHum.getTemperature();
-    s_humidity = tempHum.getHumidity();
-
-    tempHum.reportUpdates(true);  // force update
+    bool reported = tempHum.reportUpdates(firstTime);
+    if (reported) zunoSendWakeUpNotification();
 
     // turn off sht
     digitalWrite(SHT_POWER_PIN, LOW);
 
-    zunoSendWakeUpNotification();
+    // zunoSendWakeUpNotification();
+
+    // zunoSendDeviceToSleep(SLEEP_MODE_EM4);
+
+#if SERIAL_LOGS
+    Serial.println("initAndReport: Done");
+#endif
+}
+
+// core will call this function every time zuno wakes from EM2 mode
+// instead of setup()
+void _wakeHandler(void)
+{
+#if SERIAL_LOGS
+    Serial.print("EM2 Handler: time: ");
+    Serial.println(millis());
+    Serial.print("EM2 Handler: wakeup reason:");
+    Serial.println(zunoGetWakeReason(), HEX);
+#endif
+
+    if (zunoGetWakeReason() == ZUNO_WAKEUP_REASON_PIN || zunoGetWakeReason() == ZUNO_WAKEUP_REASON_WUT_EM4 ||
+        zunoGetWakeReason() == ZUNO_WAKEUP_REASON_WUT_EM2 || zunoGetWakeReason() == ZUNO_WAKEUP_REASON_EXT_EM2 ||
+        zunoGetWakeReason() == ZUNO_WAKEUP_REASON_EXT_EM4)
+    {
+        needUpdateSensors = true;
+    }
+}
+
+void setup()
+{
+    // will not work without, why???
+    Serial.begin(115200);
+
+#if SERIAL_LOGS
+    Serial.begin(115200);
+
+    Serial.print("Setup: time: ");
+    Serial.println(millis());
+    Serial.print("Setup: wakeup reason:");
+    Serial.println(zunoGetWakeReason(), HEX);
+#endif
+
+    if (zunoGetWakeReason() == ZUNO_WAKEUP_REASON_PIN || zunoGetWakeReason() == ZUNO_WAKEUP_REASON_WUT_EM4 ||
+        zunoGetWakeReason() == ZUNO_WAKEUP_REASON_WUT_EM2 || zunoGetWakeReason() == ZUNO_WAKEUP_REASON_EXT_EM2 ||
+        zunoGetWakeReason() == ZUNO_WAKEUP_REASON_EXT_EM4)
+    {
+        needUpdateSensors = true;
+    }
+
+    // setup handler for EM2 mode only
+    zunoAttachSysHandler(ZUNO_HANDLER_WUP, 0, (void*)&_wakeHandler);
 }
 
 void loop()
 {
     if (zunoIsSleepLocked())
     {
-        zunoSendDeviceToSleep(SLEEP_MODE);  // This just says I am ready but it doesn't stop usercode momentally &
-                                            // completely User sleep latch is opened
+        if (needUpdateSensors)
+        {
+            Serial.println("Need update sensors");
+            bool firstTime = (zunoGetWakeReason() == ZUNO_WAKEUP_REASON_PIN);
+            initAndReport(firstTime);
+
+            needUpdateSensors = false;
+        }
 
 #if SERIAL_LOGS
-        Serial.print("Going to sleep");
+        Serial.println("loop: Device to sleep");
 #endif
+#define WAKEUP_CUSTOM_INTERVAL 300  // Every 300 seconds
+        zunoSetCustomWUPTimer(WAKEUP_CUSTOM_INTERVAL);
+
+        zunoSendDeviceToSleep(SLEEP_MODE_EM4);  // This just says I am ready but it doesn't stop usercode momentally &
     }
 }
